@@ -5,6 +5,8 @@ import { t } from '../core/i18n';
 import { buildChoices, pickOne, ROUNDS_PER_SESSION } from '../core/miniGames';
 import { pickColorsForAge, type ColorEntry } from '../core/data/colors';
 import MiniConfetti from './MiniConfetti';
+import Celebration from './Celebration';
+import { starsFromScore } from '../core/gameLogic';
 
 interface TapColorGameProps {
   ageGroup: AgeGroupKey;
@@ -76,21 +78,14 @@ export default function TapColorGame({ ageGroup, language, onExit, speakText }: 
 
   if (done) {
     return (
-      <View style={styles.root}>
-        <View style={styles.doneCard}>
-          <Text style={styles.doneEmoji}>🏆</Text>
-          <Text style={styles.doneTitle}>{strings.correctFeedback}</Text>
-          <Text style={styles.doneScore}>{strings.scoreLabel(score)} / {ROUNDS_PER_SESSION}</Text>
-          <View style={styles.doneRow}>
-            <Pressable style={[styles.actionBtn, styles.primaryBtn]} onPress={restart}>
-              <Text style={styles.primaryBtnText}>🔄 {strings.playAgain}</Text>
-            </Pressable>
-            <Pressable style={[styles.actionBtn, styles.ghostBtn]} onPress={onExit}>
-              <Text style={styles.ghostBtnText}>{strings.home}</Text>
-            </Pressable>
-          </View>
-        </View>
-      </View>
+      <Celebration
+        visible
+        praise={strings.correctFeedback}
+        stars={starsFromScore(score, ROUNDS_PER_SESSION)}
+        nextLabel={strings.playAgain}
+        onNext={restart}
+        onHome={onExit}
+      />
     );
   }
 

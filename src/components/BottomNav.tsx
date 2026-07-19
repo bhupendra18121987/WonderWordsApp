@@ -4,7 +4,7 @@ import { t } from '../core/i18n';
 import { colors, radii, shadow } from '../core/theme';
 import type { Language } from '../core/types';
 
-export type NavScreen = 'home' | 'levels' | 'rewards' | 'profile';
+export type NavScreen = 'home' | 'levels' | 'rewards' | 'age' | 'profile';
 
 interface BottomNavProps {
   active: NavScreen | null;
@@ -27,6 +27,7 @@ export default function BottomNav({ active, language, onNavigate }: BottomNavPro
     { key: 'home',    icon: '🏠', label: strings.navHome    },
     { key: 'levels',  icon: '🗺️', label: strings.navLevels  },
     { key: 'rewards', icon: '🏆', label: strings.navRewards },
+    { key: 'age',     icon: '🎂', label: strings.navAge     },
     { key: 'profile', icon: '👤', label: strings.navProfile }
   ];
 

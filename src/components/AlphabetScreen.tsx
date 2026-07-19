@@ -19,12 +19,14 @@ interface AlphabetScreenProps {
 }
 
 type Mode = 'letters' | 'barahkhadi';
+type LetterTab = 'vowels' | 'consonants';
 
 export default function AlphabetScreen({ language, onBack, onSpeak }: AlphabetScreenProps) {
   const cfg = getLanguageConfig(language);
   const strings = t(language);
   const entry = LETTER_EXAMPLES[language];
   const [mode, setMode] = useState<Mode>('letters');
+  const [letterTab, setLetterTab] = useState<LetterTab>('vowels');
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -54,26 +56,39 @@ export default function AlphabetScreen({ language, onBack, onSpeak }: AlphabetSc
       {mode === 'letters' ? (
         <>
           <View style={styles.statsRow}>
-            <View style={styles.statPill}>
-              <Text style={styles.statText}>🌸 {strings.vowelsLabel(entry.vowels.length)}</Text>
-            </View>
-            <View style={styles.statPill}>
-              <Text style={styles.statText}>🔵 {strings.consonantsLabel(entry.consonants.length)}</Text>
-            </View>
+            <Pressable
+              onPress={() => setLetterTab('vowels')}
+              style={[styles.filterPill, styles.filterPillVowel, letterTab === 'vowels' && styles.filterPillActive]}
+            >
+              <Text style={[styles.statText, letterTab === 'vowels' && styles.filterTextActive]}>
+                🌸 {strings.vowelsLabel(entry.vowels.length)}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setLetterTab('consonants')}
+              style={[styles.filterPill, styles.filterPillConsonant, letterTab === 'consonants' && styles.filterPillActive]}
+            >
+              <Text style={[styles.statText, letterTab === 'consonants' && styles.filterTextActive]}>
+                🔵 {strings.consonantsLabel(entry.consonants.length)}
+              </Text>
+            </Pressable>
           </View>
 
-          <LetterSection
-            title={cfg.vowelLabel === 'vowel' ? 'Vowels' : cfg.vowelLabel}
-            letters={entry.vowels}
-            tone="vowel"
-            onSpeak={(l) => onSpeak(l.exampleWord ? `${l.letter}. ${l.exampleWord}` : l.letter, cfg.vowelLabel)}
-          />
-          <LetterSection
-            title={cfg.consonantLabel === 'consonant' ? 'Consonants' : cfg.consonantLabel}
-            letters={entry.consonants}
-            tone="consonant"
-            onSpeak={(l) => onSpeak(l.exampleWord ? `${l.letter}. ${l.exampleWord}` : l.letter, cfg.consonantLabel)}
-          />
+          {letterTab === 'vowels' ? (
+            <LetterSection
+              title={cfg.vowelLabel === 'vowel' ? 'Vowels' : cfg.vowelLabel}
+              letters={entry.vowels}
+              tone="vowel"
+              onSpeak={(l) => onSpeak(l.exampleWord ? `${l.letter}. ${l.exampleWord}` : l.letter, cfg.vowelLabel)}
+            />
+          ) : (
+            <LetterSection
+              title={cfg.consonantLabel === 'consonant' ? 'Consonants' : cfg.consonantLabel}
+              letters={entry.consonants}
+              tone="consonant"
+              onSpeak={(l) => onSpeak(l.exampleWord ? `${l.letter}. ${l.exampleWord}` : l.letter, cfg.consonantLabel)}
+            />
+          )}
         </>
       ) : (
         <BarahkhadiView
@@ -193,6 +208,16 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 14
   },
+  filterPill: {
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderWidth: 2
+  },
+  filterPillVowel: { backgroundColor: '#ffe0ec', borderColor: '#ff8fb5' },
+  filterPillConsonant: { backgroundColor: '#dceeff', borderColor: '#6ec5ff' },
+  filterPillActive: { backgroundColor: '#7c3aed', borderColor: '#5b21b6' },
+  filterTextActive: { color: '#fff' },
   statText: { fontSize: 13, fontWeight: '800', color: '#1e1b4b' },
   sectionTitle: {
     fontSize: 15,

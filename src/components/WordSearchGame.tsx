@@ -1,17 +1,25 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
   useWindowDimensions
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Grid from './Grid';
 import WordList from './WordList';
 import WordReveal from './WordReveal';
 import Celebration from './Celebration';
-import { LinearGradient } from 'expo-linear-gradient';
+import BackButton from './BackButton';
+import {
+  ClockIcon,
+  CoinIcon,
+  GameGrass,
+  LightbulbIcon,
+  colorForWordIndex
+} from './GameAssets';
 import { getAllWords, getWordsData } from '../core/data';
 import { buildPuzzleForLevel } from '../core/puzzleGenerator';
 import { splitGraphemes } from '../core/grapheme';
@@ -23,7 +31,7 @@ import {
   pickPraise,
   progressAfterPuzzle
 } from '../core/gameLogic';
-import { colors, radii, shadow } from '../core/theme';
+import { radii, shadow } from '../core/theme';
 import type {
   AgeGroupKey,
   Cell,
@@ -46,12 +54,8 @@ interface WordSearchGameProps {
 }
 
 const REVEAL_HOLD_MS = 10000;
+const MAX_HINTS = 3;
 
-/**
- * Main puzzle screen for React Native. Structurally mirrors the web
- * version, using the same shared `core/*` logic and the same completion
- * flow (delayed celebration with fast-forward on reveal dismiss).
- */
 export default function WordSearchGame({
   ageGroup,
   level,
@@ -68,7 +72,7 @@ export default function WordSearchGame({
   const group = wordsData.ageGroups[ageGroup];
   const bank = getAllWords(language);
   const { width } = useWindowDimensions();
-  const gridWidth = Math.min(width - 24, 400);
+  const insets = useSafeAreaInsets();
 
   const [activeLevel, setActiveLevel] = useState(level);
   const [seed, setSeed] = useState(0);
@@ -108,12 +112,15 @@ export default function WordSearchGame({
   } | null>(null);
   const [mistakes, setMistakes] = useState(0);
   const [hintsUsed, setHintsUsed] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
+  const startTimeRef = useRef<number>(Date.now());
   const streakRef = useRef(0);
   const completingRef = useRef(false);
   const completionPraiseRef = useRef('');
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Reset per-puzzle state on new puzzle
+  const gridWidth = Math.min(width - 32, 380);
+
   useEffect(() => {
     if (completionTimerRef.current) {
       clearTimeout(completionTimerRef.current);
@@ -126,10 +133,20 @@ export default function WordSearchGame({
     setCompletion(null);
     setMistakes(0);
     setHintsUsed(0);
+    setElapsed(0);
+    startTimeRef.current = Date.now();
     streakRef.current = 0;
     completingRef.current = false;
     completionPraiseRef.current = '';
   }, [puzzle]);
+
+  useEffect(() => {
+    if (completion) return;
+    const id = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [completion, puzzle]);
 
   useEffect(() => () => {
     if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
@@ -144,10 +161,20 @@ export default function WordSearchGame({
     [foundWords]
   );
 
+  const foundGroups = useMemo(
+    () =>
+      foundWords.map((f) => {
+        const idx = puzzle.items.findIndex((it) => it.word === f.word);
+        return {
+          cells: f.cells,
+          color: colorForWordIndex(idx >= 0 ? idx : 0)
+        };
+      }),
+    [foundWords, puzzle.items]
+  );
+
   const handleLetterEnter = useCallback(
-    (letter: string) => {
-      speakLetter(letter);
-    },
+    (letter: string) => { speakLetter(letter); },
     [speakLetter]
   );
 
@@ -177,15 +204,12 @@ export default function WordSearchGame({
         streakRef.current = 0;
         setMistakes((m) => m + 1);
         setWrongCells(cells);
-        // Not saying the wrong word — just visual shake.
-        // Let it disappear after a moment.
         setTimeout(() => setWrongCells([]), 500);
       }
     },
     [puzzle, foundWordStrings, speakText]
   );
 
-  // Detect puzzle completion
   useEffect(() => {
     if (
       completingRef.current ||
@@ -217,6 +241,7 @@ export default function WordSearchGame({
       speakText(praise);
       setCompletion({ wordsFound, stars, praise });
     }, REVEAL_HOLD_MS);
+    void pickEncouragement;
   }, [
     foundWords,
     puzzle.items.length,
@@ -231,6 +256,7 @@ export default function WordSearchGame({
   ]);
 
   const useHint = useCallback(() => {
+    if (hintsUsed >= MAX_HINTS) return;
     const remaining = puzzle.placements.filter(
       (p) => !foundWordStrings.includes(p.word)
     );
@@ -240,9 +266,8 @@ export default function WordSearchGame({
     setHintsUsed((n) => n + 1);
     speakText(target.word);
     setTimeout(() => setHintCells([]), 2400);
-  }, [puzzle.placements, foundWordStrings, speakText]);
+  }, [puzzle.placements, foundWordStrings, speakText, hintsUsed]);
 
-  const newPuzzle = () => setSeed((s) => s + 1);
   const nextLevel = () => {
     setActiveLevel((l) => l + 1);
     setSeed((s) => s + 1);
@@ -251,6 +276,15 @@ export default function WordSearchGame({
   const progressPct = puzzle.items.length === 0
     ? 0
     : Math.round((foundWords.length / puzzle.items.length) * 100);
+
+  const timerLabel = useMemo(() => {
+    const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
+    const ss = String(elapsed % 60).padStart(2, '0');
+    return `${mm}:${ss}`;
+  }, [elapsed]);
+
+  const hintsRemaining = Math.max(0, MAX_HINTS - hintsUsed);
+  const hintDisabled = hintsRemaining === 0;
 
   const finishRevealEarly = () => {
     setReveal(null);
@@ -268,58 +302,71 @@ export default function WordSearchGame({
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <LinearGradient
-        colors={[colors.primaryLight, colors.primary]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.hero}
-      >
-        <View style={styles.header}>
-          <View style={styles.pill}>
-            <Text style={styles.pillText}>🧩 {strings.level} {activeLevel}</Text>
-          </View>
-          <View style={styles.pill}>
-            <Text style={styles.pillText}>
-              {foundWords.length}/{puzzle.items.length} {strings.found}
-            </Text>
-          </View>
+    <LinearGradient
+      colors={['#8a4ff0', '#6b2fd5']}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={[styles.screen, { paddingTop: insets.top + 12, paddingBottom: 120 + insets.bottom }]}
+    >
+      <View style={styles.topbar}>
+        <BackButton onPress={onExit} variant="light" />
+        <View style={styles.chip}>
+          <ClockIcon size={14} />
+          <Text style={styles.chipText}>{timerLabel}</Text>
         </View>
-
-        <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: `${progressPct}%` }]} />
+        <View style={styles.chip}>
+          <CoinIcon size={16} />
+          <Text style={styles.chipText}>{progress.stars}</Text>
         </View>
-      </LinearGradient>
-
-      <View style={{ alignItems: 'center', marginTop: 12 }}>
-        <Grid
-          grid={puzzle.grid}
-          foundCells={allFoundCells}
-          hintCells={hintCells}
-          wrongCells={wrongCells}
-          highlightVowels
-          language={language}
-          onLetterEnter={handleLetterEnter}
-          onSelectionAttempt={handleSelectionAttempt}
-          gridWidth={gridWidth}
-        />
       </View>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>{strings.wordsToFind}</Text>
-        <WordList items={puzzle.items} foundWords={foundWordStrings} />
+        <WordList items={puzzle.items} foundWords={foundWordStrings} colored />
+
+        <View style={styles.progressBar}>
+          <View style={[styles.progressFill, { width: `${progressPct}%` }]} />
+        </View>
+
+        <View style={{ alignItems: 'center', marginTop: 6 }}>
+          <Grid
+            grid={puzzle.grid}
+            foundCells={allFoundCells}
+            foundGroups={foundGroups}
+            hintCells={hintCells}
+            wrongCells={wrongCells}
+            highlightVowels
+            language={language}
+            onLetterEnter={handleLetterEnter}
+            onSelectionAttempt={handleSelectionAttempt}
+            gridWidth={gridWidth}
+          />
+        </View>
+
+        <View style={styles.actionsRow}>
+          <View style={{ flex: 1 }} />
+          <Pressable
+            onPress={useHint}
+            disabled={hintDisabled}
+            style={({ pressed }) => [
+              styles.hintBtn,
+              hintDisabled && styles.hintBtnDisabled,
+              pressed && !hintDisabled && { transform: [{ translateY: 2 }] }
+            ]}
+          >
+            <View style={styles.hintIcon}>
+              <LightbulbIcon size={16} />
+            </View>
+            <Text style={styles.hintLabel}>{strings.hint.replace(/^[💡\s]+/, '')}</Text>
+            <View style={styles.hintBadge}>
+              <Text style={styles.hintBadgeText}>{hintsRemaining}</Text>
+            </View>
+          </Pressable>
+        </View>
       </View>
 
-      <View style={styles.actionsRow}>
-        <Pressable style={[styles.actionBtn, styles.actionAccent]} onPress={useHint}>
-          <Text style={styles.actionText}>{strings.hint}</Text>
-        </Pressable>
-        <Pressable style={[styles.actionBtn, styles.actionGhost]} onPress={newPuzzle}>
-          <Text style={styles.actionGhostText}>{strings.newBtn}</Text>
-        </Pressable>
-        <Pressable style={[styles.actionBtn, styles.actionGhost]} onPress={onExit}>
-          <Text style={styles.actionGhostText}>{strings.home}</Text>
-        </Pressable>
+      <View style={styles.grass} pointerEvents="none">
+        <GameGrass width={width} height={44} />
       </View>
 
       <WordReveal
@@ -338,99 +385,79 @@ export default function WordSearchGame({
         onNext={() => { setCompletion(null); nextLevel(); }}
         onHome={() => { setCompletion(null); onExit(); }}
       />
-    </ScrollView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    paddingTop: 84,
-    paddingBottom: 120,
-    backgroundColor: colors.bg,
+  screen: {
+    flex: 1,
+    paddingHorizontal: 16,
     gap: 12
   },
-  hero: {
-    borderRadius: radii.lg,
-    padding: 12,
+  topbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderRadius: radii.pill,
+    ...shadow.soft
+  },
+  chipText: { fontSize: 13, fontWeight: '900', color: '#1e1b4b' },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 26,
+    padding: 14,
     gap: 10,
     ...shadow.card
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 8
-  },
-  pill: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.96)',
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.55)'
-  },
-  pillText: {
-    fontSize: 12,
-    textAlign: 'center',
-    fontWeight: '800',
-    color: colors.ink
-  },
+  cardTitle: { fontSize: 16, fontWeight: '900', color: '#5b21b6', textAlign: 'center' },
   progressBar: {
-    height: 14,
-    backgroundColor: 'rgba(255,255,255,0.32)',
+    height: 10,
+    backgroundColor: '#efe6ff',
     borderRadius: 999,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.34)'
+    overflow: 'hidden'
   },
-  progressFill: {
-    height: '100%',
-    backgroundColor: colors.accent,
-    borderRadius: 999
-  },
-  card: {
-    backgroundColor: colors.paper,
-    borderRadius: radii.md,
-    padding: 14,
-    gap: 10,
-    borderWidth: 1,
-    borderColor: colors.border,
-    ...shadow.soft
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: colors.primaryDark
-  },
+  progressFill: { height: '100%', backgroundColor: '#8a4ff0', borderRadius: 999 },
   actionsRow: {
     flexDirection: 'row',
-    gap: 8,
-    justifyContent: 'space-between'
-  },
-  actionBtn: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 999,
     alignItems: 'center',
-    justifyContent: 'center'
+    marginTop: 6
   },
-  actionAccent: {
-    backgroundColor: colors.accent
+  hintBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    backgroundColor: '#ffd23c',
+    borderRadius: radii.pill,
+    ...shadow.soft
   },
-  actionText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: colors.onAccent
+  hintBtnDisabled: { opacity: 0.5 },
+  hintIcon: {
+    width: 24, height: 24, borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.55)',
+    alignItems: 'center', justifyContent: 'center'
   },
-  actionGhost: {
-    backgroundColor: colors.paper,
-    borderWidth: 2,
-    borderColor: colors.border
+  hintLabel: { fontSize: 13, fontWeight: '900', color: '#1e1b4b' },
+  hintBadge: {
+    minWidth: 22, height: 22, borderRadius: 11,
+    backgroundColor: '#ef4444',
+    alignItems: 'center', justifyContent: 'center',
+    paddingHorizontal: 6
   },
-  actionGhostText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: colors.ink
+  hintBadgeText: { fontSize: 12, fontWeight: '900', color: '#fff' },
+  grass: {
+    position: 'absolute',
+    left: 0, right: 0, bottom: 60,
+    height: 44
   }
 });

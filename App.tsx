@@ -34,6 +34,8 @@ import useSpeech from './src/hooks/useSpeech';
 
 // Core (shared with web)
 import {
+  DEFAULT_PROFILE_AVATAR,
+  DEFAULT_PROFILE_NAME,
   DEFAULT_PROGRESS,
   DEFAULT_SETTINGS,
   STORAGE_KEYS
@@ -114,6 +116,10 @@ function AppInner() {
   // up where they left off.
   const [lastMiniGame, setLastMiniGame] =
     useLocalStorage<MiniGameId | null>('ww:lastMiniGame', null);
+  const [profileName, setProfileName] =
+    useLocalStorage<string>(STORAGE_KEYS.profileName, DEFAULT_PROFILE_NAME);
+  const [profileAvatar, setProfileAvatar] =
+    useLocalStorage<string>(STORAGE_KEYS.profileAvatar, DEFAULT_PROFILE_AVATAR);
 
   const persistenceLoaded = settingsLoaded && ageGroupLoaded && setupLoaded;
 
@@ -303,6 +309,7 @@ function AppInner() {
           step={!setupComplete ? { current: 2, total: 2 } : undefined}
           onSelect={handleSelectAge}
           onStart={handleAgeStart}
+          onBack={setupComplete ? () => setScreen('home') : undefined}
         />
       )}
 
@@ -322,7 +329,7 @@ function AppInner() {
       {screen === 'game' && ageGroup && (
         <WordSearchGame
           ageGroup={ageGroup}
-          level={progress.level}
+          level={selectedLevel ?? progress.level}
           language={settings.language}
           progress={progress}
           onProgressUpdate={setProgress}
@@ -358,7 +365,7 @@ function AppInner() {
         <TicTacToeGame
           ageGroup={ageGroup}
           language={settings.language}
-          onExit={() => setScreen('home')}
+          onExit={() => setScreen('miniGames')}
           speakText={speakText}
           onSetMascotMessage={setMascotMessage}
         />
@@ -375,7 +382,8 @@ function AppInner() {
             antonymPairs: true,
             karaoke: true,
             twoPlayer: true,
-            trace: true
+            trace: true,
+            tictactoe: true
           }}
           onBack={() => setScreen('home')}
           onPick={(id: MiniGameId) => {
@@ -387,6 +395,7 @@ function AppInner() {
             else if (id === 'karaoke') setScreen('karaoke');
             else if (id === 'twoPlayer') setScreen('twoPlayer');
             else if (id === 'trace') setScreen('trace');
+            else if (id === 'tictactoe') setScreen('tictactoe');
           }}
         />
       )}
@@ -467,6 +476,10 @@ function AppInner() {
           ageGroup={ageGroup}
           language={settings.language}
           progress={progress}
+          profileName={profileName}
+          profileAvatar={profileAvatar}
+          onProfileNameChange={setProfileName}
+          onProfileAvatarChange={setProfileAvatar}
           onBack={() => setScreen('home')}
           onChangeAge={() => setScreen('ageSelect')}
         />
@@ -514,6 +527,7 @@ function AppInner() {
           stars={progress.stars}
           onStarsPress={() => setScreen('rewards')}
           onOpenSettings={() => setShowSettings(true)}
+          onOpenTour={() => setShowOnboarding(true)}
         />
       )}
       {ageGroup && !isImmersive && screen !== 'ageSelect' && navActive && (
@@ -524,6 +538,7 @@ function AppInner() {
             if (target === 'home') setScreen('home');
             else if (target === 'levels') setScreen('miniGames');
             else if (target === 'rewards') setScreen('rewards');
+            else if (target === 'age') setScreen('ageSelect');
             else if (target === 'profile') setScreen('profile');
           }}
         />

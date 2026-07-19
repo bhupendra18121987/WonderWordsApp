@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Grid from './Grid';
 import { getAllWords, getWordsData } from '../core/data';
@@ -63,6 +63,14 @@ export default function TwoPlayerGame({
 
   const [found, setFound] = useState<FoundEntry[]>([]);
   const [currentPlayer, setCurrentPlayer] = useState<1 | 2>(1);
+  const [wrongCells, setWrongCells] = useState<Cell[]>([]);
+
+  // Reset per-puzzle state when the puzzle regenerates (Play Again, new seed).
+  useEffect(() => {
+    setFound([]);
+    setCurrentPlayer(1);
+    setWrongCells([]);
+  }, [puzzle]);
 
   const foundWords = useMemo(() => found.map((f) => f.word), [found]);
   const allFoundCells = useMemo(() => found.flatMap((f) => f.cells), [found]);
@@ -85,6 +93,8 @@ export default function TwoPlayerGame({
   const handleSelectionAttempt = useCallback(
     ({ word, cells, isStraight }: { word: string; cells: Cell[]; isStraight: boolean }) => {
       if (!isStraight || !word || gameOver) return;
+      // Ignore accidental single-cell taps that finish immediately.
+      if (cells.length < 2) return;
       const dragged = splitGraphemes(word);
       const target = puzzle.placements.find((p) => {
         if (foundWords.includes(p.word)) return false;
@@ -101,6 +111,9 @@ export default function TwoPlayerGame({
           ...prev,
           { word: target.word, cells: target.cells, player: currentPlayer }
         ]);
+      } else {
+        setWrongCells(cells);
+        setTimeout(() => setWrongCells([]), 500);
       }
       // Always switch turns after a completed attempt so both players
       // get equal time — regardless of correctness.
@@ -178,6 +191,13 @@ export default function TwoPlayerGame({
       <Grid
         grid={puzzle.grid}
         foundCells={allFoundCells}
+        foundGroups={found.map((f) => ({
+          cells: f.cells,
+          color: f.player === 1
+            ? { bg: '#6ec5ff', dark: '#2f8ac9' }
+            : { bg: '#ff8fb5', dark: '#d95a83' }
+        }))}
+        wrongCells={wrongCells}
         language={language}
         gridWidth={gridWidth}
         onLetterEnter={speakLetter}

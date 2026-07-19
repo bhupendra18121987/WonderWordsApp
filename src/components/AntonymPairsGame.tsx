@@ -5,6 +5,8 @@ import { t } from '../core/i18n';
 import { shuffleInPlace } from '../core/miniGames';
 import { pickPairsForAge, type AntonymPair } from '../core/data/antonyms';
 import MiniConfetti from './MiniConfetti';
+import Celebration from './Celebration';
+import { starsFromScore } from '../core/gameLogic';
 
 interface AntonymPairsGameProps {
   ageGroup: AgeGroupKey;
@@ -101,24 +103,18 @@ export default function AntonymPairsGame({
   };
 
   if (done) {
+    // Fewer taps than 2×pairs → more stars.
+    const minAttempts = initialPairs.length;
+    const stars = attempts <= minAttempts ? 3 : starsFromScore(minAttempts, Math.max(attempts, 1));
     return (
-      <View style={styles.root}>
-        <View style={styles.doneCard}>
-          <Text style={styles.doneEmoji}>🏆</Text>
-          <Text style={styles.doneTitle}>{strings.correctFeedback}</Text>
-          <Text style={styles.doneScore}>
-            {strings.scoreLabel(initialPairs.length)} · {attempts} taps
-          </Text>
-          <View style={styles.doneRow}>
-            <Pressable style={[styles.actionBtn, styles.primaryBtn]} onPress={restart}>
-              <Text style={styles.primaryBtnText}>🔄 {strings.playAgain}</Text>
-            </Pressable>
-            <Pressable style={[styles.actionBtn, styles.ghostBtn]} onPress={onExit}>
-              <Text style={styles.ghostBtnText}>{strings.home}</Text>
-            </Pressable>
-          </View>
-        </View>
-      </View>
+      <Celebration
+        visible
+        praise={strings.correctFeedback}
+        stars={stars}
+        nextLabel={strings.playAgain}
+        onNext={restart}
+        onHome={onExit}
+      />
     );
   }
 

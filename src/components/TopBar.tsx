@@ -9,6 +9,8 @@ interface TopBarProps {
   onStarsPress?: () => void;
   /** Opens Settings modal. */
   onOpenSettings: () => void;
+  /** Optional handler that opens the onboarding tour. */
+  onOpenTour?: () => void;
 }
 
 /**
@@ -17,7 +19,7 @@ interface TopBarProps {
  *   - Gear icon on the right in a violet circle
  * Absolutely positioned; safe-area aware.
  */
-export default function TopBar({ stars, onStarsPress, onOpenSettings }: TopBarProps) {
+export default function TopBar({ stars, onStarsPress, onOpenSettings, onOpenTour }: TopBarProps) {
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.bar, { paddingTop: insets.top + 8 }]} pointerEvents="box-none">
@@ -31,14 +33,27 @@ export default function TopBar({ stars, onStarsPress, onOpenSettings }: TopBarPr
         <Text style={styles.chipText}>{stars}</Text>
       </Pressable>
 
-      <Pressable
-        style={({ pressed }) => [styles.gear, pressed && styles.pressed]}
-        onPress={onOpenSettings}
-        accessibilityRole="button"
-        accessibilityLabel="Settings"
-      >
-        <Text style={styles.gearIcon}>⚙️</Text>
-      </Pressable>
+      <View style={styles.actions}>
+        {onOpenTour ? (
+          <Pressable
+            style={({ pressed }) => [styles.gear, styles.tour, pressed && styles.pressed]}
+            onPress={onOpenTour}
+            accessibilityRole="button"
+            accessibilityLabel="Tour"
+          >
+            <Text style={styles.gearIcon}>🎬</Text>
+          </Pressable>
+        ) : null}
+
+        <Pressable
+          style={({ pressed }) => [styles.gear, pressed && styles.pressed]}
+          onPress={onOpenSettings}
+          accessibilityRole="button"
+          accessibilityLabel="Settings"
+        >
+          <Text style={styles.gearIcon}>⚙️</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -66,6 +81,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent,
     ...shadow.cta
   },
+  actions: { flexDirection: 'row', gap: 8 },
+  tour: { backgroundColor: '#ffd23c' },
   chipStar: { fontSize: 18 },
   chipText: {
     fontSize: 16,

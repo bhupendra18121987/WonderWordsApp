@@ -12,7 +12,8 @@ export type MiniGameId =
   | 'antonymPairs'
   | 'karaoke'
   | 'twoPlayer'
-  | 'trace';
+  | 'trace'
+  | 'tictactoe';
 
 interface MiniGamesHubProps {
   language: Language;
@@ -26,8 +27,8 @@ interface TileDef {
   id: MiniGameId;
   emoji: string;
   color: string;
-  nameKey: 'letterHuntName' | 'tapColorName' | 'missingLetterName' | 'antonymName' | 'karaokeName' | 'twoPlayerName' | 'traceName';
-  subKey: 'letterHuntSub' | 'tapColorSub' | 'missingLetterSub' | 'antonymSub' | 'karaokeSub' | 'twoPlayerSub' | 'traceSub';
+  nameKey: 'letterHuntName' | 'tapColorName' | 'missingLetterName' | 'antonymName' | 'karaokeName' | 'twoPlayerName' | 'traceName' | 'ticTacToeName';
+  subKey: 'letterHuntSub' | 'tapColorSub' | 'missingLetterSub' | 'antonymSub' | 'karaokeSub' | 'twoPlayerSub' | 'traceSub' | 'ticTacToeSub';
 }
 
 const TILES: TileDef[] = [
@@ -37,7 +38,8 @@ const TILES: TileDef[] = [
   { id: 'antonymPairs', emoji: '🔁', color: '#f0d6ff', nameKey: 'antonymName', subKey: 'antonymSub' },
   { id: 'karaoke', emoji: '🎤', color: '#fef3c7', nameKey: 'karaokeName', subKey: 'karaokeSub' },
   { id: 'twoPlayer', emoji: '🤝', color: '#fed7aa', nameKey: 'twoPlayerName', subKey: 'twoPlayerSub' },
-  { id: 'trace', emoji: '✍️', color: '#a7f3d0', nameKey: 'traceName', subKey: 'traceSub' }
+  { id: 'trace', emoji: '✍️', color: '#a7f3d0', nameKey: 'traceName', subKey: 'traceSub' },
+  { id: 'tictactoe', emoji: '⭕', color: '#ffd6e0', nameKey: 'ticTacToeName', subKey: 'ticTacToeSub' }
 ];
 
 export default function MiniGamesHub({ language, onBack, onPick, enabled, lastPlayed }: MiniGamesHubProps) {

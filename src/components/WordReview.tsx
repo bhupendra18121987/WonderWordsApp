@@ -1,6 +1,16 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { t } from '../core/i18n';
+import { useEffect, useMemo, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import BackButton from './BackButton';
+import {
+  AppleScene,
+  AudioIcon,
+  ChevronIcon,
+  EmojiScene
+} from './WordMeaningAssets';
 import type { Language, LearnedWord } from '../core/types';
+import { radii, shadow } from '../core/theme';
 
 interface WordReviewProps {
   learnedWords: LearnedWord[];
@@ -9,116 +19,169 @@ interface WordReviewProps {
   onSpeak: (word: LearnedWord) => void;
 }
 
-/**
- * Simple gallery of every word the child has ever learned. Tap any card
- * to hear the word + its meaning spoken again.
- */
+const WORD_COLORS = ['#e94b6b', '#f0863a', '#3faf46', '#4a8fd4', '#b34dc7'];
+
+function sceneFor(word: LearnedWord) {
+  if (word.word.trim().toLowerCase() === 'apple') return <AppleScene size={220} />;
+  return <EmojiScene emoji={word.emoji} size={220} />;
+}
+
 export default function WordReview({
   learnedWords,
   language = 'en',
   onBack,
   onSpeak
 }: WordReviewProps) {
-  const strings = t(language);
+  const insets = useSafeAreaInsets();
+  const [index, setIndex] = useState(0);
+  const items = useMemo(() => learnedWords, [learnedWords]);
+  const count = items.length;
+  const current = count > 0 ? items[index % count]! : null;
   const isHi = language === 'hi';
 
-  return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>
-        {isHi ? 'तुम्हारे शब्द 💎' : 'Your word treasure! 💎'}
-      </Text>
-      <Text style={styles.lead}>
-        {isHi
-          ? 'किसी भी शब्द पर टैप करके फिर से सुनो।'
-          : 'Tap any word to hear it again.'}
-      </Text>
+  useEffect(() => {
+    if (current) onSpeak(current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index]);
 
-      {learnedWords.length === 0 ? (
+  return (
+    <LinearGradient
+      colors={['#8a4ff0', '#6b2fd5']}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={[styles.screen, { paddingTop: insets.top + 12, paddingBottom: 24 + insets.bottom }]}
+    >
+      <View style={styles.topbar}>
+        <BackButton onPress={onBack} variant="light" />
+        <Text style={styles.topTitle}>{isHi ? 'शब्द का अर्थ' : 'Word Meaning'}</Text>
+        <View style={{ width: 44 }} />
+      </View>
+
+      {!current ? (
         <View style={styles.empty}>
           <Text style={styles.emptyEmoji}>📚</Text>
           <Text style={styles.emptyText}>
             {isHi ? 'अभी कोई शब्द नहीं — जाओ ढूंढो!' : 'No words yet — go find some!'}
           </Text>
+          <Pressable onPress={onBack} style={styles.emptyBtn}>
+            <Text style={styles.emptyBtnText}>{isHi ? '← घर' : '← Back home'}</Text>
+          </Pressable>
         </View>
       ) : (
-        <View style={styles.grid}>
-          {learnedWords.map((w) => (
-            <Pressable
-              key={w.word}
-              style={styles.tile}
-              onPress={() => onSpeak(w)}
+        <View style={styles.card}>
+          <View style={styles.wordRow}>
+            <Text
+              style={[styles.word, { color: WORD_COLORS[index % WORD_COLORS.length] }]}
             >
-              <Text style={styles.emoji}>{w.emoji}</Text>
-              <Text style={styles.word}>{w.word}</Text>
-              <Text style={styles.meaning} numberOfLines={3}>
-                {w.meaning}
-              </Text>
+              {current.word.toUpperCase()}
+            </Text>
+            <Pressable
+              onPress={() => onSpeak(current)}
+              style={({ pressed }) => [styles.audioBtn, pressed && { transform: [{ scale: 0.95 }] }]}
+              accessibilityRole="button"
+              accessibilityLabel={`Speak ${current.word}`}
+            >
+              <AudioIcon size={22} />
             </Pressable>
-          ))}
+          </View>
+
+          <View style={styles.scene}>{sceneFor(current)}</View>
+
+          <View style={styles.meaningPanel}>
+            <Text style={styles.meaning}>{current.meaning}</Text>
+          </View>
+
+          <View style={styles.pager}>
+            <Pressable
+              onPress={() => setIndex((i) => (i - 1 + count) % count)}
+              style={({ pressed }) => [styles.navBtn, pressed && { transform: [{ scale: 0.94 }] }]}
+              accessibilityRole="button"
+              accessibilityLabel="Previous"
+            >
+              <ChevronIcon dir="left" size={22} />
+            </Pressable>
+            <View style={styles.dots}>
+              {[0, 1, 2].map((i) => {
+                const active = (index % count) % 3 === i;
+                const color = i === 0 ? '#ff8fb5' : i === 1 ? '#ffd23c' : '#c9c3d8';
+                return (
+                  <View
+                    key={i}
+                    style={[
+                      styles.dot,
+                      { backgroundColor: active ? color : 'rgba(255,255,255,0.55)' },
+                      active && { width: 22 }
+                    ]}
+                  />
+                );
+              })}
+            </View>
+            <Pressable
+              onPress={() => setIndex((i) => (i + 1) % count)}
+              style={({ pressed }) => [styles.navBtn, pressed && { transform: [{ scale: 0.94 }] }]}
+              accessibilityRole="button"
+              accessibilityLabel="Next"
+            >
+              <ChevronIcon dir="right" size={22} />
+            </Pressable>
+          </View>
         </View>
       )}
-
-      <Pressable style={styles.back} onPress={onBack}>
-        <Text style={styles.backText}>← {strings.home}</Text>
-      </Pressable>
-    </ScrollView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    paddingTop: 40,
-    paddingBottom: 120,
-    backgroundColor: '#f3f0ff',
-    gap: 12
+  screen: { flex: 1, paddingHorizontal: 16, gap: 14 },
+  topbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  topTitle: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: '900',
+    textShadowColor: 'rgba(30,15,110,0.35)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 0
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#6d28d9',
-    textAlign: 'center'
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 26,
+    padding: 18,
+    gap: 12,
+    ...shadow.card
   },
-  lead: { fontSize: 14, color: '#6b7280', textAlign: 'center' },
-  empty: { alignItems: 'center', gap: 12, marginTop: 40 },
-  emptyEmoji: { fontSize: 64 },
-  emptyText: { fontSize: 16, color: '#6b7280', textAlign: 'center' },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginTop: 6
-  },
-  tile: {
-    flexGrow: 1,
-    flexBasis: '46%',
-    minWidth: 140,
-    backgroundColor: '#ffffff',
-    borderRadius: 20,
-    padding: 14,
-    alignItems: 'center',
-    gap: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3
-  },
-  emoji: { fontSize: 40 },
-  word: { fontSize: 16, fontWeight: '800', color: '#1e1b4b' },
-  meaning: {
-    fontSize: 12,
-    color: '#6b7280',
-    textAlign: 'center',
-    lineHeight: 16
-  },
-  back: {
-    marginTop: 16,
+  wordRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  word: { fontSize: 34, fontWeight: '900', letterSpacing: 1 },
+  audioBtn: {
+    width: 48, height: 48, borderRadius: 24,
     backgroundColor: '#7c3aed',
-    paddingVertical: 14,
-    paddingHorizontal: 22,
-    borderRadius: 999,
-    alignSelf: 'center'
+    alignItems: 'center', justifyContent: 'center',
+    ...shadow.soft
   },
-  backText: { color: '#fff', fontWeight: '800', fontSize: 15 }
+  scene: { alignItems: 'center', paddingVertical: 6 },
+  meaningPanel: {
+    backgroundColor: '#f5f0ff',
+    borderRadius: radii.md,
+    padding: 14
+  },
+  meaning: { fontSize: 15, fontWeight: '700', color: '#1e1b4b', textAlign: 'center' },
+  pager: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },
+  navBtn: {
+    width: 44, height: 44, borderRadius: 22,
+    backgroundColor: '#f5f0ff',
+    alignItems: 'center', justifyContent: 'center',
+    ...shadow.soft
+  },
+  dots: { flexDirection: 'row', gap: 6, alignItems: 'center' },
+  dot: { width: 10, height: 10, borderRadius: 5 },
+  empty: { alignItems: 'center', gap: 12, marginTop: 40 },
+  emptyEmoji: { fontSize: 56 },
+  emptyText: { color: '#fff', fontSize: 15, fontWeight: '800', textAlign: 'center' },
+  emptyBtn: {
+    marginTop: 6,
+    backgroundColor: '#fff',
+    borderRadius: radii.pill,
+    paddingHorizontal: 20,
+    paddingVertical: 10
+  },
+  emptyBtnText: { color: '#1e1b4b', fontSize: 15, fontWeight: '900' }
 });

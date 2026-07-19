@@ -10,8 +10,16 @@ import {
   useWindowDimensions
 } from 'react-native';
 import ConfettiCannon from 'react-native-confetti-cannon';
-import PandaIllustration from './PandaIllustration';
-import { colors, radii, shadow } from '../core/theme';
+import {
+  BigStar,
+  Bunting,
+  CheerPanda,
+  HomeIcon,
+  RefreshIcon,
+  RewardCoin,
+  RewardStar
+} from './CelebrationAssets';
+import { radii, shadow } from '../core/theme';
 
 interface CelebrationProps {
   visible: boolean;
@@ -22,11 +30,13 @@ interface CelebrationProps {
   showStars?: boolean;
   nextLabel?: string;
   homeLabel?: string;
+  pointsEarned?: number;
+  coinsEarned?: number;
   onNext: () => void;
   onHome: () => void;
 }
 
-const PARTY_COLORS = ['#7c3aed', '#ffcf5c', '#58c896', '#6ec9ff', '#d19cff', '#ff9f43', '#ffffff'];
+const PARTY_COLORS = ['#ff8fab', '#ffcf5c', '#7fe25a', '#6ec5ff', '#c088ff', '#ff9754'];
 
 export default function Celebration({
   visible,
@@ -35,35 +45,38 @@ export default function Celebration({
   subtitle,
   stars = 3,
   showStars = true,
-  nextLabel = 'Next puzzle →',
-  homeLabel = '🏠 Home',
+  nextLabel = 'Awesome!',
+  homeLabel = 'Home',
+  pointsEarned,
+  coinsEarned,
   onNext,
   onHome
 }: CelebrationProps) {
   const { width, height } = useWindowDimensions();
-  const trophyBounce = useRef(new Animated.Value(0)).current;
+  const pandaBounce = useRef(new Animated.Value(0)).current;
+  void praise; void wordsFound; void homeLabel; void subtitle;
+
+  const earnedPoints = pointsEarned ?? Math.max(10, stars * 20);
+  const earnedCoins = coinsEarned ?? Math.max(4, Math.round(stars * 8));
 
   useEffect(() => {
     if (!visible) return;
-    trophyBounce.setValue(0);
+    pandaBounce.setValue(0);
     Animated.loop(
       Animated.sequence([
-        Animated.timing(trophyBounce, { toValue: 1, duration: 800, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-        Animated.timing(trophyBounce, { toValue: 0, duration: 800, easing: Easing.inOut(Easing.sin), useNativeDriver: true })
+        Animated.timing(pandaBounce, { toValue: 1, duration: 900, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(pandaBounce, { toValue: 0, duration: 900, easing: Easing.inOut(Easing.sin), useNativeDriver: true })
       ])
     ).start();
-  }, [visible, trophyBounce]);
-
-  const summary = subtitle ?? (typeof wordsFound === 'number'
-    ? `${wordsFound} ${wordsFound === 1 ? 'word' : 'words'} found!`
-    : undefined);
+  }, [visible, pandaBounce]);
 
   if (!visible) return null;
+
+  const pandaTranslate = pandaBounce.interpolate({ inputRange: [0, 1], outputRange: [0, -8] });
 
   return (
     <Modal transparent animationType="fade" visible onRequestClose={onHome}>
       <View style={styles.overlay}>
-        {/* Two confetti cannons for a full-screen shower */}
         <ConfettiCannon
           count={140}
           origin={{ x: 0, y: height * 0.4 }}
@@ -81,51 +94,49 @@ export default function Celebration({
           colors={PARTY_COLORS}
         />
 
-        <View style={styles.modal}>
-          <Animated.View
-            style={[
-              styles.hero,
-              {
-                transform: [
-                  { scale: trophyBounce.interpolate({ inputRange: [0, 1], outputRange: [1, 1.15] }) },
-                  { rotate: trophyBounce.interpolate({ inputRange: [0, 1], outputRange: ['-8deg', '8deg'] }) }
-                ]
-              }
-            ]}
-          >
-            <PandaIllustration size={108} />
-          </Animated.View>
-          <Text style={styles.praise}>{praise}</Text>
-          {summary && <Text style={styles.subtitle}>{summary}</Text>}
+        <View style={styles.bunting} pointerEvents="none">
+          <Bunting width={Math.min(width - 20, 380)} height={70} />
+        </View>
 
-          {showStars && (
+        <View style={styles.modal}>
+          <Text style={styles.title}>Level{'\n'}Complete!</Text>
+
+          <Animated.View style={{ transform: [{ translateY: pandaTranslate }] }}>
+            <CheerPanda size={160} />
+          </Animated.View>
+
+          {showStars ? (
             <View style={styles.starsRow}>
               {[0, 1, 2].map((i) => (
-                <Text
-                  key={i}
-                  style={[
-                    styles.star,
-                    i < stars ? styles.starWon : styles.starMissed
-                  ]}
-                >
-                  {i < stars ? '⭐' : '☆'}
-                </Text>
+                <BigStar key={i} filled={i < stars} size={54} />
               ))}
             </View>
-          )}
+          ) : null}
 
-          <View style={styles.buttons}>
-            <Pressable
-              style={({ pressed }) => [styles.btn, styles.btnPrimary, pressed && styles.btnPressed]}
-              onPress={onNext}
-            >
-              <Text style={styles.btnPrimaryText}>{nextLabel}</Text>
+          <View style={styles.earnedChip}>
+            <Text style={styles.earnedChipText}>You earned</Text>
+          </View>
+
+          <View style={styles.rewardsRow}>
+            <View style={styles.reward}>
+              <RewardStar size={22} />
+              <Text style={styles.rewardText}>+{earnedPoints}</Text>
+            </View>
+            <View style={styles.reward}>
+              <RewardCoin size={22} />
+              <Text style={styles.rewardText}>+{earnedCoins}</Text>
+            </View>
+          </View>
+
+          <View style={styles.actions}>
+            <Pressable onPress={onHome} style={({ pressed }) => [styles.iconBtn, pressed && { transform: [{ scale: 0.95 }] }]}>
+              <HomeIcon size={22} />
             </Pressable>
-            <Pressable
-              style={({ pressed }) => [styles.btn, styles.btnGhost, pressed && styles.btnPressed]}
-              onPress={onHome}
-            >
-              <Text style={styles.btnGhostText}>{homeLabel}</Text>
+            <Pressable onPress={onNext} style={({ pressed }) => [styles.primaryBtn, pressed && { transform: [{ translateY: 2 }] }]}>
+              <Text style={styles.primaryBtnText}>{nextLabel}</Text>
+            </Pressable>
+            <Pressable onPress={onNext} style={({ pressed }) => [styles.iconBtn, pressed && { transform: [{ scale: 0.95 }] }]}>
+              <RefreshIcon size={22} />
             </Pressable>
           </View>
         </View>
@@ -137,62 +148,68 @@ export default function Celebration({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(30,20,55,0.68)',
-    justifyContent: 'center',
+    backgroundColor: 'rgba(30,15,110,0.55)',
     alignItems: 'center',
+    justifyContent: 'center',
     padding: 20
   },
+  bunting: { position: 'absolute', top: 40, alignItems: 'center' },
   modal: {
-    backgroundColor: '#fffaf0',
-    borderRadius: radii.lg,
-    padding: 26,
+    backgroundColor: '#fff',
+    borderRadius: 28,
+    paddingHorizontal: 22,
+    paddingVertical: 24,
     alignItems: 'center',
-    gap: 14,
-    maxWidth: 460,
+    gap: 10,
+    maxWidth: 360,
     width: '100%',
-    borderWidth: 4,
-    borderColor: colors.accent,
     ...shadow.card
   },
-  hero: { marginTop: -8 },
-  praise: {
+  title: {
     fontSize: 32,
-    fontWeight: '800',
-    color: colors.primaryDark,
-    textAlign: 'center'
+    fontWeight: '900',
+    color: '#5b21b6',
+    textAlign: 'center',
+    lineHeight: 34
   },
-  subtitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.inkSoft,
-    textAlign: 'center'
-  },
-  starsRow: {
-    flexDirection: 'row',
-    gap: 8,
+  starsRow: { flexDirection: 'row', gap: 6, marginTop: 4 },
+  earnedChip: {
+    backgroundColor: '#ffe58a',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: radii.pill,
     marginTop: 4
   },
-  star: { fontSize: 44, lineHeight: 50 },
-  starWon: { opacity: 1 },
-  starMissed: { opacity: 0.4 },
-  buttons: {
+  earnedChipText: { fontSize: 13, fontWeight: '900', color: '#1e1b4b' },
+  rewardsRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
+  reward: {
     flexDirection: 'row',
-    gap: 10,
-    marginTop: 8,
-    flexWrap: 'wrap',
-    justifyContent: 'center'
-  },
-  btn: {
-    paddingVertical: 14,
-    paddingHorizontal: 22,
-    borderRadius: 999,
-    minHeight: 48,
     alignItems: 'center',
-    justifyContent: 'center'
+    gap: 6,
+    backgroundColor: '#f5f0ff',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: radii.pill
   },
-  btnPrimary: { backgroundColor: '#7c3aed' },
-  btnPrimaryText: { color: '#fff', fontWeight: '800', fontSize: 17 },
-  btnGhost: { backgroundColor: '#ffffff', borderWidth: 2, borderColor: colors.border },
-  btnGhostText: { color: colors.ink, fontWeight: '800', fontSize: 15 },
-  btnPressed: { transform: [{ scale: 0.96 }], opacity: 0.92 }
+  rewardText: { fontSize: 15, fontWeight: '900', color: '#1e1b4b' },
+  actions: {
+    marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10
+  },
+  iconBtn: {
+    width: 48, height: 48, borderRadius: 24,
+    backgroundColor: '#f5f0ff',
+    alignItems: 'center', justifyContent: 'center',
+    ...shadow.soft
+  },
+  primaryBtn: {
+    paddingHorizontal: 26,
+    paddingVertical: 14,
+    borderRadius: radii.pill,
+    backgroundColor: '#3ecf5c',
+    ...shadow.card
+  },
+  primaryBtnText: { color: '#fff', fontSize: 17, fontWeight: '900' }
 });

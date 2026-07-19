@@ -1,0 +1,29 @@
+{
+  "praise": [
+    "Excellent!",
+    "Amazing!",
+    "Great job!",
+    "You're a star!",
+    "Fantastic!",
+    "Wonderful!",
+    "Well done!",
+    "Superb!",
+    "Brilliant!",
+    "Way to go!"
+  ],
+  "encouragement": [
+    "Let's find another word!",
+    "You can do it!",
+    "Keep going, friend!",
+    "You're doing great!",
+    "One more, superstar!"
+  ],
+  "badges": [
+    { "id": "first_word", "label": "First Word", "emoji": "🌟", "description": "Found your very first word." },
+    { "id": "puzzle_1",   "label": "Puzzle Pro", "emoji": "🏆", "description": "Completed your first puzzle." },
+    { "id": "puzzle_5",   "label": "High Five", "emoji": "🖐️", "description": "Completed five puzzles." },
+    { "id": "words_10",   "label": "Word Wizard", "emoji": "🧙", "description": "Found 10 words." },
+    { "id": "words_25",   "label": "Vocabulary Hero", "emoji": "🦸", "description": "Found 25 words." },
+    { "id": "streak_3",   "label": "Hot Streak", "emoji": "🔥", "description": "3 words in a row without a mistake." }
+  ]
+}

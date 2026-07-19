@@ -1,0 +1,105 @@
+{
+  "ageGroups": {
+    "3-4": {
+      "label": "3 – 4 वर्ष",
+      "emoji": "🐣",
+      "gridSize": 6,
+      "wordsPerPuzzle": 5,
+      "minLength": 2,
+      "maxLength": 3,
+      "directions": ["horizontal", "vertical"],
+      "themeColor": "#ffb3c1"
+    },
+    "5-6": {
+      "label": "5 – 6 वर्ष",
+      "emoji": "🦄",
+      "gridSize": 7,
+      "wordsPerPuzzle": 5,
+      "minLength": 2,
+      "maxLength": 4,
+      "directions": ["horizontal", "vertical", "reverseHorizontal", "reverseVertical"],
+      "themeColor": "#a0e7e5"
+    },
+    "7-8": {
+      "label": "7 – 8 वर्ष",
+      "emoji": "🚀",
+      "gridSize": 9,
+      "wordsPerPuzzle": 7,
+      "minLength": 3,
+      "maxLength": 5,
+      "directions": ["horizontal", "vertical", "diagonal", "reverseHorizontal", "reverseVertical", "reverseDiagonal", "antiDiagonal"],
+      "themeColor": "#b5ead7"
+    }
+  },
+  "words": [
+    { "word": "गाय",  "category": "Animals", "ageGroups": ["3-4","5-6"], "emoji": "🐄", "meaning": "गाय हमें दूध देती है।" },
+    { "word": "कुत्ता","category": "Animals","ageGroups": ["5-6","7-8"], "emoji": "🐶", "meaning": "कुत्ता एक वफादार पालतू जानवर है।" },
+    { "word": "बिल्ली","category": "Animals","ageGroups": ["5-6","7-8"], "emoji": "🐱", "meaning": "बिल्ली म्याऊँ बोलती है।" },
+    { "word": "शेर",  "category": "Animals", "ageGroups": ["5-6","7-8"], "emoji": "🦁", "meaning": "शेर जंगल का राजा है।" },
+    { "word": "हाथी", "category": "Animals", "ageGroups": ["5-6","7-8"], "emoji": "🐘", "meaning": "हाथी बहुत बड़ा जानवर है।" },
+    { "word": "बकरी", "category": "Animals", "ageGroups": ["5-6","7-8"], "emoji": "🐐", "meaning": "बकरी घास खाती है।" },
+    { "word": "बंदर", "category": "Animals", "ageGroups": ["5-6","7-8"], "emoji": "🐵", "meaning": "बंदर पेड़ पर उछलता है।" },
+    { "word": "मछली", "category": "Animals", "ageGroups": ["5-6","7-8"], "emoji": "🐟", "meaning": "मछली पानी में तैरती है।" },
+    { "word": "मोर",  "category": "Birds",   "ageGroups": ["5-6","7-8"], "emoji": "🦚", "meaning": "मोर बहुत सुंदर पक्षी है।" },
+    { "word": "तोता", "category": "Birds",   "ageGroups": ["5-6","7-8"], "emoji": "🦜", "meaning": "तोता हरा पक्षी है और बोल सकता है।" },
+    { "word": "कौआ", "category": "Birds",    "ageGroups": ["3-4","5-6"], "emoji": "🐦", "meaning": "कौआ काला पक्षी है।" },
+
+    { "word": "आम",  "category": "Fruits", "ageGroups": ["3-4","5-6"], "emoji": "🥭", "meaning": "आम फलों का राजा है।" },
+    { "word": "सेब", "category": "Fruits", "ageGroups": ["3-4","5-6"], "emoji": "🍎", "meaning": "सेब मीठा और रसीला फल है।" },
+    { "word": "केला","category": "Fruits", "ageGroups": ["3-4","5-6"], "emoji": "🍌", "meaning": "केला पीला फल है।" },
+    { "word": "अंगूर","category": "Fruits","ageGroups": ["5-6","7-8"], "emoji": "🍇", "meaning": "अंगूर छोटे और मीठे फल हैं।" },
+    { "word": "अनार","category": "Fruits", "ageGroups": ["5-6","7-8"], "emoji": "🍎", "meaning": "अनार लाल दानों वाला फल है।" },
+    { "word": "नींबू","category": "Fruits","ageGroups": ["5-6","7-8"], "emoji": "🍋", "meaning": "नींबू खट्टा फल है।" },
+    { "word": "तरबूज","category": "Fruits","ageGroups": ["7-8"],       "emoji": "🍉", "meaning": "तरबूज बड़ा और रसीला फल है।" },
+
+    { "word": "गोभी","category": "Vegetables","ageGroups": ["5-6","7-8"], "emoji": "🥦", "meaning": "गोभी हरी सब्जी है।" },
+    { "word": "आलू", "category": "Vegetables","ageGroups": ["3-4","5-6"], "emoji": "🥔", "meaning": "आलू ज़मीन के नीचे उगता है।" },
+    { "word": "टमाटर","category": "Vegetables","ageGroups": ["5-6","7-8"], "emoji": "🍅", "meaning": "टमाटर लाल सब्जी है।" },
+    { "word": "प्याज","category": "Vegetables","ageGroups": ["5-6","7-8"], "emoji": "🧅", "meaning": "प्याज से आँसू आते हैं।" },
+    { "word": "गाजर","category": "Vegetables","ageGroups": ["5-6","7-8"], "emoji": "🥕", "meaning": "गाजर नारंगी सब्जी है।" },
+
+    { "word": "लाल", "category": "Colors", "ageGroups": ["3-4","5-6"], "emoji": "🔴", "meaning": "लाल रंग सेब जैसा होता है।" },
+    { "word": "नीला","category": "Colors", "ageGroups": ["3-4","5-6"], "emoji": "🔵", "meaning": "नीला रंग आकाश जैसा होता है।" },
+    { "word": "हरा", "category": "Colors", "ageGroups": ["3-4","5-6"], "emoji": "🟢", "meaning": "हरा रंग घास जैसा होता है।" },
+    { "word": "पीला","category": "Colors", "ageGroups": ["3-4","5-6"], "emoji": "🟡", "meaning": "पीला रंग सूरज जैसा होता है।" },
+    { "word": "काला","category": "Colors", "ageGroups": ["5-6","7-8"], "emoji": "⚫", "meaning": "काला रंग रात जैसा होता है।" },
+    { "word": "सफेद","category": "Colors","ageGroups": ["5-6","7-8"], "emoji": "⚪", "meaning": "सफेद रंग दूध जैसा होता है।" },
+
+    { "word": "सूरज","category": "Nature", "ageGroups": ["3-4","5-6"], "emoji": "☀️", "meaning": "सूरज हमें रोशनी देता है।" },
+    { "word": "चांद","category": "Nature", "ageGroups": ["3-4","5-6"], "emoji": "🌙", "meaning": "चांद रात में चमकता है।" },
+    { "word": "तारा","category": "Nature", "ageGroups": ["5-6","7-8"], "emoji": "⭐", "meaning": "तारा आसमान में टिमटिमाता है।" },
+    { "word": "पेड़", "category": "Nature", "ageGroups": ["3-4","5-6"], "emoji": "🌳", "meaning": "पेड़ हमें छाया देते हैं।" },
+    { "word": "फूल", "category": "Nature", "ageGroups": ["3-4","5-6"], "emoji": "🌸", "meaning": "फूल सुंदर और सुगंधित होते हैं।" },
+    { "word": "बादल","category": "Nature", "ageGroups": ["5-6","7-8"], "emoji": "☁️", "meaning": "बादल आकाश में तैरते हैं।" },
+    { "word": "पानी","category": "Nature", "ageGroups": ["3-4","5-6"], "emoji": "💧", "meaning": "पानी हमें पीने के लिए चाहिए।" },
+    { "word": "बारिश","category": "Nature","ageGroups": ["5-6","7-8"], "emoji": "🌧️", "meaning": "बारिश बादलों से आती है।" },
+    { "word": "इंद्रधनुष","category": "Nature","ageGroups":["7-8"],   "emoji": "🌈", "meaning": "इंद्रधनुष में सात रंग होते हैं।" },
+
+    { "word": "कार", "category": "Vehicles", "ageGroups": ["3-4","5-6"], "emoji": "🚗", "meaning": "कार सड़क पर चलती है।" },
+    { "word": "बस",  "category": "Vehicles", "ageGroups": ["3-4","5-6"], "emoji": "🚌", "meaning": "बस में बहुत लोग बैठते हैं।" },
+    { "word": "रेल", "category": "Vehicles", "ageGroups": ["3-4","5-6"], "emoji": "🚂", "meaning": "रेल पटरी पर दौड़ती है।" },
+    { "word": "नाव", "category": "Vehicles", "ageGroups": ["5-6","7-8"], "emoji": "⛵", "meaning": "नाव पानी में तैरती है।" },
+    { "word": "हवाईजहाज","category": "Vehicles","ageGroups": ["7-8"],   "emoji": "✈️", "meaning": "हवाईजहाज आसमान में उड़ता है।" },
+
+    { "word": "आंख", "category": "Body", "ageGroups": ["3-4","5-6"], "emoji": "👁️", "meaning": "आंख से हम देखते हैं।" },
+    { "word": "कान", "category": "Body", "ageGroups": ["3-4","5-6"], "emoji": "👂", "meaning": "कान से हम सुनते हैं।" },
+    { "word": "नाक", "category": "Body", "ageGroups": ["3-4","5-6"], "emoji": "👃", "meaning": "नाक से हम सूंघते हैं।" },
+    { "word": "मुंह","category": "Body", "ageGroups": ["5-6","7-8"], "emoji": "👄", "meaning": "मुंह से हम खाते और बोलते हैं।" },
+    { "word": "हाथ", "category": "Body", "ageGroups": ["3-4","5-6"], "emoji": "✋", "meaning": "हाथ से हम काम करते हैं।" },
+    { "word": "पैर", "category": "Body", "ageGroups": ["3-4","5-6"], "emoji": "🦶", "meaning": "पैर से हम चलते हैं।" },
+
+    { "word": "एक", "category": "Numbers", "ageGroups": ["3-4","5-6"], "emoji": "1️⃣", "meaning": "एक पहली संख्या है।" },
+    { "word": "दो", "category": "Numbers", "ageGroups": ["3-4","5-6"], "emoji": "2️⃣", "meaning": "दो एक के बाद आता है।" },
+    { "word": "तीन","category": "Numbers", "ageGroups": ["3-4","5-6"], "emoji": "3️⃣", "meaning": "तीन दो के बाद आता है।" },
+    { "word": "चार","category": "Numbers", "ageGroups": ["5-6","7-8"], "emoji": "4️⃣", "meaning": "चार तीन के बाद आता है।" },
+    { "word": "पाँच","category": "Numbers","ageGroups": ["5-6","7-8"], "emoji": "5️⃣", "meaning": "पाँच उंगलियाँ एक हाथ में होती हैं।" },
+
+    { "word": "घर", "category": "Household", "ageGroups": ["3-4","5-6"], "emoji": "🏠", "meaning": "घर में हम रहते हैं।" },
+    { "word": "कप", "category": "Household", "ageGroups": ["3-4","5-6"], "emoji": "☕", "meaning": "कप में हम पानी पीते हैं।" },
+    { "word": "दरवाजा","category": "Household","ageGroups": ["7-8"],    "emoji": "🚪", "meaning": "दरवाजे से हम अंदर बाहर जाते हैं।" },
+
+    { "word": "किताब","category": "School", "ageGroups": ["5-6","7-8"], "emoji": "📖", "meaning": "किताब से हम पढ़ते हैं।" },
+    { "word": "कलम", "category": "School",  "ageGroups": ["3-4","5-6"], "emoji": "🖊️", "meaning": "कलम से हम लिखते हैं।" },
+    { "word": "बस्ता","category": "School", "ageGroups": ["5-6","7-8"], "emoji": "🎒", "meaning": "बस्ते में किताबें रहती हैं।" }
+  ]
+}

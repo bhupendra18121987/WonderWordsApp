@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="wfill" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#fff2a0"/>
+      <stop offset="55%" stop-color="#ffd23c"/>
+      <stop offset="100%" stop-color="#f5a91e"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Transparent bg; art must stay inside the 66% center circle (radius ~330) -->
+
+  <!-- W (scaled down ~76% of full to stay well inside safe zone) -->
+  <path d="M 320 400 L 428 668 L 512 522 L 596 668 L 704 400"
+        fill="none"
+        stroke="url(#wfill)"
+        stroke-width="78"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <!-- Star accent upper-right of W (inside safe circle) -->
+  <g transform="translate(720 340)">
+    <path d="M 0 -32 L 9 -9 L 32 0 L 9 9 L 0 32 L -9 9 L -32 0 L -9 -9 Z"
+          fill="#ffffff" opacity="0.95"/>
+  </g>
+
+  <!-- Sparkle upper-left -->
+  <g transform="translate(304 336)">
+    <path d="M 0 -16 L 5 -5 L 16 0 L 5 5 L 0 16 L -5 5 L -16 0 L -5 -5 Z"
+          fill="#ffffff" opacity="0.8"/>
+  </g>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Monochrome silhouette: pure alpha; color is white so Android can tint. -->
+  <path d="M 320 400 L 428 668 L 512 522 L 596 668 L 704 400"
+        fill="none"
+        stroke="#ffffff"
+        stroke-width="78"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <g transform="translate(720 340)">
+    <path d="M 0 -32 L 9 -9 L 32 0 L 9 9 L 0 32 L -9 9 L -32 0 L -9 -9 Z"
+          fill="#ffffff"/>
+  </g>
+</svg>

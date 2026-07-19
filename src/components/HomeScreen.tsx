@@ -152,7 +152,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingHorizontal: 6
+    paddingHorizontal: 6,
+    // Match the web `.home-hero { margin: 44px 0 auto }` — push the card
+    // down so it clears the absolutely-positioned TopBar chrome.
+    marginTop: 44
   },
   heroTitle: {
     fontSize: 26,

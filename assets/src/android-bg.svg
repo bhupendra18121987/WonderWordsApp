@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#a26bff"/>
+      <stop offset="60%" stop-color="#8a4ff0"/>
+      <stop offset="100%" stop-color="#5b21b6"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="1024" height="1024" fill="url(#bg)"/>
+
+  <!-- Very subtle sparkle pattern to add depth without competing with the W -->
+  <g fill="#ffffff" opacity="0.10">
+    <circle cx="160" cy="180" r="4"/>
+    <circle cx="900" cy="140" r="6"/>
+    <circle cx="120" cy="880" r="6"/>
+    <circle cx="890" cy="920" r="5"/>
+    <circle cx="500" cy="120" r="3"/>
+    <circle cx="230" cy="500" r="3"/>
+    <circle cx="800" cy="620" r="4"/>
+  </g>
+</svg>

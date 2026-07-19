@@ -64,15 +64,14 @@ export default function AgeSelect({
 
   return (
     <LinearGradient
-      colors={['#c8a3ff', '#dcc4ff', '#fff6e2', '#fff9ed']}
-      locations={[0, 0.22, 0.46, 1]}
+      colors={['#8a4ff0', '#6b2fd5']}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={[styles.screen, { paddingTop: insets.top + 12 }]}
     >
       {onBack ? (
         <View style={styles.backWrap}>
-          <BackButton onPress={onBack} variant="dark" />
+          <BackButton onPress={onBack} variant="light" />
         </View>
       ) : null}
 
@@ -128,6 +127,9 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     paddingHorizontal: 16,
+    // Leave room for the fixed BottomNav (~90px + safe area) so the dots
+    // and last age pill don't hide behind it.
+    paddingBottom: 100,
     alignItems: 'center'
   },
   backWrap: {
@@ -159,7 +161,15 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 0
   },
-  prompt: { color: '#1f2258', fontSize: 15, fontWeight: '900', marginBottom: 14 },
+  prompt: {
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: '900',
+    marginBottom: 14,
+    textShadowColor: 'rgba(30,15,110,0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 0
+  },
   stack: { width: '92%', gap: 14 },
   pill: {
     minHeight: 90,

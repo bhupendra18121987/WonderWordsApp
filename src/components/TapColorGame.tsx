@@ -6,6 +6,7 @@ import { buildChoices, pickOne, ROUNDS_PER_SESSION } from '../core/miniGames';
 import { pickColorsForAge, type ColorEntry } from '../core/data/colors';
 import MiniConfetti from './MiniConfetti';
 import Celebration from './Celebration';
+import ThemedScreen from './ThemedScreen';
 import { starsFromScore } from '../core/gameLogic';
 
 interface TapColorGameProps {
@@ -90,12 +91,11 @@ export default function TapColorGame({ ageGroup, language, onExit, speakText }: 
   }
 
   return (
-    <View style={styles.root}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{strings.tapColorName}</Text>
-        <Text style={styles.headerRight}>{strings.roundLabel(round, ROUNDS_PER_SESSION)}   {strings.scoreLabel(score)}</Text>
-      </View>
-
+    <ThemedScreen
+      title={strings.tapColorName}
+      onBack={onExit}
+      headerRight={<Text style={styles.headerRight}>{strings.roundLabel(round, ROUNDS_PER_SESSION)}   {strings.scoreLabel(score)}</Text>}
+    >
       <Pressable
         style={styles.promptCard}
         onPress={() => speakText(strings.tapColorPrompt(target.labels[language]))}
@@ -126,12 +126,8 @@ export default function TapColorGame({ ageGroup, language, onExit, speakText }: 
         })}
       </View>
 
-      <Pressable style={styles.back} onPress={onExit}>
-        <Text style={styles.backText}>← {strings.home}</Text>
-      </Pressable>
-
       <MiniConfetti trigger={burstCount} />
-    </View>
+    </ThemedScreen>
   );
 }
 

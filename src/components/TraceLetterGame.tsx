@@ -14,6 +14,7 @@ import Svg, { Path } from 'react-native-svg';
 import type { AgeGroupKey, Language } from '../core/types';
 import { t } from '../core/i18n';
 import { tracePool, type TraceMode } from '../core/data/tracePool';
+import ThemedScreen from './ThemedScreen';
 
 interface TraceLetterGameProps {
   ageGroup: AgeGroupKey;
@@ -135,16 +136,18 @@ export default function TraceLetterGame({
   const isCursive = mode === 'cursive';
 
   return (
-    <View style={styles.root}>
-      <View style={styles.header}>
-        <Pressable
-          style={styles.title}
-          onPress={() => current && speakText(current)}
-        >
-          <Text style={styles.titleText}>{'✍️ '}{current || '—'}</Text>
-        </Pressable>
-        <Text style={styles.meta}>{index + 1} / {pool.length}</Text>
-      </View>
+    <ThemedScreen
+      title={strings.traceName}
+      onBack={onExit}
+      headerRight={<Text style={styles.meta}>{index + 1} / {pool.length}</Text>}
+      scroll={false}
+    >
+      <Pressable
+        style={styles.title}
+        onPress={() => current && speakText(current)}
+      >
+        <Text style={styles.titleText}>{'✍️ '}{current || '—'}</Text>
+      </Pressable>
 
       <Text style={styles.subtitle}>{strings.traceSub}</Text>
 
@@ -222,11 +225,7 @@ export default function TraceLetterGame({
           <Text style={styles.ctrlGhostText}>{strings.traceNext}</Text>
         </Pressable>
       </View>
-
-      <Pressable style={styles.back} onPress={onExit}>
-        <Text style={styles.backText}>← {strings.home}</Text>
-      </Pressable>
-    </View>
+    </ThemedScreen>
   );
 }
 

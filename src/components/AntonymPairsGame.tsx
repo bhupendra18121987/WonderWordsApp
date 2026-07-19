@@ -6,6 +6,7 @@ import { shuffleInPlace } from '../core/miniGames';
 import { pickPairsForAge, type AntonymPair } from '../core/data/antonyms';
 import MiniConfetti from './MiniConfetti';
 import Celebration from './Celebration';
+import ThemedScreen from './ThemedScreen';
 import { starsFromScore } from '../core/gameLogic';
 
 interface AntonymPairsGameProps {
@@ -119,14 +120,11 @@ export default function AntonymPairsGame({
   }
 
   return (
-    <View style={styles.root}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{strings.antonymName}</Text>
-        <Text style={styles.headerRight}>
-          {matched.size} / {initialPairs.length}
-        </Text>
-      </View>
-
+    <ThemedScreen
+      title={strings.antonymName}
+      onBack={onExit}
+      headerRight={<Text style={styles.headerRight}>{matched.size} / {initialPairs.length}</Text>}
+    >
       <Text style={styles.prompt}>{strings.antonymPrompt}</Text>
 
       <View style={styles.grid}>
@@ -163,12 +161,8 @@ export default function AntonymPairsGame({
         })}
       </View>
 
-      <Pressable style={styles.back} onPress={onExit}>
-        <Text style={styles.backText}>← {strings.home}</Text>
-      </Pressable>
-
       <MiniConfetti trigger={burstCount} />
-    </View>
+    </ThemedScreen>
   );
 }
 

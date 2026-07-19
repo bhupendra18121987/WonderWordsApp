@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Grid from './Grid';
+import ThemedScreen from './ThemedScreen';
 import { getAllWords, getWordsData } from '../core/data';
 import { buildPuzzleForLevel } from '../core/puzzleGenerator';
 import { splitGraphemes } from '../core/grapheme';
@@ -160,7 +161,7 @@ export default function TwoPlayerGame({
   }
 
   return (
-    <View style={styles.root}>
+    <ThemedScreen title={strings.twoPlayerName} onBack={onExit} scroll={false}>
       <View style={styles.scoreRow}>
         <View
           style={[
@@ -188,32 +189,30 @@ export default function TwoPlayerGame({
         {strings.playerTurn(currentName)}
       </Text>
 
-      <Grid
-        grid={puzzle.grid}
-        foundCells={allFoundCells}
-        foundGroups={found.map((f) => ({
-          cells: f.cells,
-          color: f.player === 1
-            ? { bg: '#6ec5ff', dark: '#2f8ac9' }
-            : { bg: '#ff8fb5', dark: '#d95a83' }
-        }))}
-        wrongCells={wrongCells}
-        language={language}
-        gridWidth={gridWidth}
-        onLetterEnter={speakLetter}
-        onSelectionAttempt={handleSelectionAttempt}
-      />
+      <View style={{ alignItems: 'center' }}>
+        <Grid
+          grid={puzzle.grid}
+          foundCells={allFoundCells}
+          foundGroups={found.map((f) => ({
+            cells: f.cells,
+            color: f.player === 1
+              ? { bg: '#6ec5ff', dark: '#2f8ac9' }
+              : { bg: '#ff8fb5', dark: '#d95a83' }
+          }))}
+          wrongCells={wrongCells}
+          language={language}
+          gridWidth={gridWidth}
+          onLetterEnter={speakLetter}
+          onSelectionAttempt={handleSelectionAttempt}
+        />
+      </View>
 
       <View style={styles.wordsRow}>
         <Text style={styles.wordsHint}>
           {found.length} / {totalWords}
         </Text>
       </View>
-
-      <Pressable style={styles.back} onPress={onExit}>
-        <Text style={styles.backText}>← {strings.home}</Text>
-      </Pressable>
-    </View>
+    </ThemedScreen>
   );
 }
 

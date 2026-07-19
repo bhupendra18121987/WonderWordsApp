@@ -10,6 +10,7 @@ import {
 } from '../core/data/missingLetter';
 import MiniConfetti from './MiniConfetti';
 import Celebration from './Celebration';
+import ThemedScreen from './ThemedScreen';
 import { starsFromScore } from '../core/gameLogic';
 
 interface MissingLetterGameProps {
@@ -104,26 +105,19 @@ export default function MissingLetterGame({
   }
 
   if (!puzzle) {
-    // No suitable puzzle could be generated (very unlikely).
     return (
-      <View style={styles.root}>
-        <Text style={styles.title}>{strings.missingLetterName}</Text>
-        <Pressable style={styles.back} onPress={onExit}>
-          <Text style={styles.backText}>← {strings.home}</Text>
-        </Pressable>
-      </View>
+      <ThemedScreen title={strings.missingLetterName} onBack={onExit}>
+        <Text style={styles.prompt}>—</Text>
+      </ThemedScreen>
     );
   }
 
   return (
-    <View style={styles.root}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{strings.missingLetterName}</Text>
-        <Text style={styles.headerRight}>
-          {strings.roundLabel(round, ROUNDS_PER_SESSION)}   {strings.scoreLabel(score)}
-        </Text>
-      </View>
-
+    <ThemedScreen
+      title={strings.missingLetterName}
+      onBack={onExit}
+      headerRight={<Text style={styles.headerRight}>{strings.roundLabel(round, ROUNDS_PER_SESSION)}   {strings.scoreLabel(score)}</Text>}
+    >
       <View style={styles.wordCard}>
         <Text style={styles.emojiHint}>{puzzle.word.emoji ?? '❔'}</Text>
         <View style={styles.wordRow}>
@@ -173,12 +167,8 @@ export default function MissingLetterGame({
         })}
       </View>
 
-      <Pressable style={styles.back} onPress={onExit}>
-        <Text style={styles.backText}>← {strings.home}</Text>
-      </Pressable>
-
       <MiniConfetti trigger={burstCount} />
-    </View>
+    </ThemedScreen>
   );
 }
 

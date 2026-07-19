@@ -264,16 +264,40 @@ function AppInner() {
   };
 
   // ─────────── Chrome visibility ───────────
-  const isImmersive =
+  // Fully-immersive screens hide both the app TopBar AND the BottomNav.
+  // Themed screens hide only the TopBar (they render their own purple
+  // header) but keep the BottomNav for tab-switching.
+  const isFullImmersive =
     screen === 'splash' ||
+    screen === 'review' ||
+    screen === 'game' ||
+    screen === 'letterHunt' ||
+    screen === 'tapColor' ||
+    screen === 'missingLetter' ||
+    screen === 'antonymPairs' ||
+    screen === 'karaoke' ||
+    screen === 'twoPlayer' ||
+    screen === 'trace' ||
+    screen === 'tictactoe' ||
     (screen === 'languageSelect' && !setupComplete) ||
     (screen === 'ageSelect' && !setupComplete);
 
-  // Map current screen to BottomNav active tab (only 4 primary tabs).
+  const hasThemedHeader =
+    screen === 'alphabet' ||
+    screen === 'miniGames' ||
+    screen === 'rewards' ||
+    screen === 'profile' ||
+    (screen === 'ageSelect' && setupComplete);
+
+  const hideTopBar = isFullImmersive || hasThemedHeader;
+  const hideBottomNav = isFullImmersive;
+
+  // Map current screen to BottomNav active tab.
   const navActive: NavScreen | null =
     screen === 'home' ? 'home' :
     screen === 'miniGames' || screen === 'game' || screen === 'alphabet' ? 'levels' :
     screen === 'rewards' ? 'rewards' :
+    screen === 'ageSelect' ? 'age' :
     screen === 'profile' ? 'profile' :
     null;
 
@@ -515,7 +539,7 @@ function AppInner() {
       )}
 
       {/* Chrome (only after wizard) */}
-      {!isImmersive && (
+      {!hideTopBar && (
         <TopBar
           stars={progress.stars}
           onStarsPress={() => setScreen('rewards')}
@@ -523,7 +547,7 @@ function AppInner() {
           onOpenTour={() => setShowOnboarding(true)}
         />
       )}
-      {ageGroup && !isImmersive && screen !== 'ageSelect' && navActive && (
+      {ageGroup && !hideBottomNav && navActive && (
         <BottomNav
           active={navActive}
           language={settings.language}

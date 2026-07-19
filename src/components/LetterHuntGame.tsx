@@ -6,6 +6,7 @@ import { buildChoices, pickOne, ROUNDS_PER_SESSION } from '../core/miniGames';
 import { CHOICE_COUNT_BY_AGE, letterPool } from '../core/data/letterHunt';
 import MiniConfetti from './MiniConfetti';
 import Celebration from './Celebration';
+import ThemedScreen from './ThemedScreen';
 import { starsFromScore } from '../core/gameLogic';
 
 interface LetterHuntGameProps {
@@ -88,12 +89,11 @@ export default function LetterHuntGame({ ageGroup, language, onExit, speakText }
   }
 
   return (
-    <View style={styles.root}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{strings.letterHuntName}</Text>
-        <Text style={styles.headerRight}>{strings.roundLabel(round, ROUNDS_PER_SESSION)}   {strings.scoreLabel(score)}</Text>
-      </View>
-
+    <ThemedScreen
+      title={strings.letterHuntName}
+      onBack={onExit}
+      headerRight={<Text style={styles.headerRight}>{strings.roundLabel(round, ROUNDS_PER_SESSION)}   {strings.scoreLabel(score)}</Text>}
+    >
       <Pressable
         style={styles.promptCard}
         onPress={() => speakText(strings.letterHuntPrompt(target))}
@@ -128,12 +128,8 @@ export default function LetterHuntGame({ ageGroup, language, onExit, speakText }
         })}
       </View>
 
-      <Pressable style={styles.back} onPress={onExit}>
-        <Text style={styles.backText}>← {strings.home}</Text>
-      </Pressable>
-
       <MiniConfetti trigger={burstCount} />
-    </View>
+    </ThemedScreen>
   );
 }
 

@@ -18,6 +18,7 @@ import {
 import { t } from '../core/i18n';
 import { pickPraise } from '../core/gameLogic';
 import Celebration from './Celebration';
+import ThemedScreen from './ThemedScreen';
 import type { AgeGroupKey, Language } from '../core/types';
 
 interface TicTacToeGameProps {
@@ -130,7 +131,7 @@ export default function TicTacToeGame({
   };
 
   return (
-    <View style={styles.container}>
+    <ThemedScreen title={strings.ticTacToeName} onBack={onExit} scroll={false}>
       <View style={styles.header}>
         <TokenBadge
           who={strings.you}
@@ -219,7 +220,7 @@ export default function TicTacToeGame({
         onNext={startNewGame}
         onHome={onExit}
       />
-    </View>
+    </ThemedScreen>
   );
 }
 

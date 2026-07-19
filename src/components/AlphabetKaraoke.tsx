@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { Language } from '../core/types';
 import { t } from '../core/i18n';
 import { LANGUAGE_CONFIG } from '../core/languages';
+import ThemedScreen from './ThemedScreen';
 
 interface AlphabetKaraokeProps {
   language: Language;
@@ -66,12 +67,12 @@ export default function AlphabetKaraoke({ language, onExit, speakText }: Alphabe
   };
 
   return (
-    <View style={styles.root}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{strings.karaokeName}</Text>
-        <Text style={styles.headerRight}>{index + 1} / {letters.length}</Text>
-      </View>
-
+    <ThemedScreen
+      title={strings.karaokeName}
+      onBack={onExit}
+      headerRight={<Text style={styles.headerRight}>{index + 1} / {letters.length}</Text>}
+      scroll={false}
+    >
       <ScrollView contentContainerStyle={styles.gridWrap} showsVerticalScrollIndicator={false}>
         <View style={styles.grid}>
           {letters.map((letter, i) => {
@@ -108,11 +109,7 @@ export default function AlphabetKaraoke({ language, onExit, speakText }: Alphabe
           <Text style={styles.controlGhostText}>{strings.karaokeRestart}</Text>
         </Pressable>
       </View>
-
-      <Pressable style={styles.back} onPress={onExit}>
-        <Text style={styles.backText}>← {strings.home}</Text>
-      </Pressable>
-    </View>
+    </ThemedScreen>
   );
 }
 

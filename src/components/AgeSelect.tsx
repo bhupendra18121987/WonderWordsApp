@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getWordsData } from '../core/data';
@@ -9,6 +9,7 @@ import BackButton from './BackButton';
 import {
   BearAvatar,
   BunnyAvatar,
+  HillsScene,
   LionAvatar,
   StarMascot
 } from './AgeAssets';
@@ -42,6 +43,7 @@ export default function AgeSelect({
   onBack
 }: AgeSelectProps) {
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const wordsData = getWordsData(language);
   const groups = Object.entries(wordsData.ageGroups) as [
     AgeGroupKey,
@@ -119,6 +121,10 @@ export default function AgeSelect({
         <View style={[styles.dot, styles.dotOn]} />
         <View style={[styles.dot, styles.dotOff]} />
       </View>
+
+      <View style={styles.hills} pointerEvents="none">
+        <HillsScene width={width} height={160} />
+      </View>
     </LinearGradient>
   );
 }
@@ -127,9 +133,8 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     paddingHorizontal: 16,
-    // Leave room for the fixed BottomNav (~90px + safe area) so the dots
-    // and last age pill don't hide behind it.
-    paddingBottom: 100,
+    // Leave room for the fixed BottomNav + hills decoration.
+    paddingBottom: 140,
     alignItems: 'center'
   },
   backWrap: {
@@ -208,9 +213,18 @@ const styles = StyleSheet.create({
     marginTop: 'auto',
     marginBottom: 20,
     flexDirection: 'row',
-    gap: 8
+    gap: 8,
+    zIndex: 2
   },
   dot: { width: 8, height: 8, borderRadius: 4 },
   dotOn: { backgroundColor: '#fff', width: 10, height: 10, borderRadius: 5 },
-  dotOff: { backgroundColor: 'rgba(255,255,255,0.6)' }
+  dotOff: { backgroundColor: 'rgba(255,255,255,0.6)' },
+  hills: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    // Sit above the fixed BottomNav (~76px tall + 10px bottom + safe area).
+    bottom: 90,
+    zIndex: 1
+  }
 });

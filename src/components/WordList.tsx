@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import type { WordEntry } from '../core/types';
 import { colorForWordIndex } from './GameAssets';
@@ -9,7 +10,7 @@ interface WordListProps {
   colored?: boolean;
 }
 
-export default function WordList({ items, foundWords, colored = false }: WordListProps) {
+function WordList({ items, foundWords, colored = false }: WordListProps) {
   const foundSet = new Set(foundWords);
   return (
     <View style={styles.container}>
@@ -77,3 +78,6 @@ const styles = StyleSheet.create({
     textDecorationLine: 'line-through'
   }
 });
+
+
+export default memo(WordList);

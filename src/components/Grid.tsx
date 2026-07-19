@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
   Easing,
@@ -39,7 +39,7 @@ const GRID_PADDING = 8;
  * compute the straight line between start & current, read the letters in
  * that order, and hand the whole selection to `onSelectionAttempt`.
  */
-export default function Grid({
+function GridInner({
   grid,
   foundCells = [],
   foundGroups,
@@ -302,3 +302,7 @@ const styles = StyleSheet.create({
     color: '#fff'
   }
 });
+
+
+const Grid = memo(GridInner);
+export default Grid;

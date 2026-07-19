@@ -215,6 +215,7 @@ export default function TicTacToeGame({
         stars={3}
         showStars={false}
         nextLabel={strings.playAgain}
+        homeLabel={strings.home}
         onNext={startNewGame}
         onHome={onExit}
       />
@@ -252,7 +253,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     paddingTop: 40,
-    backgroundColor: '#fff7d6',
+    backgroundColor: '#f3f0ff',
     gap: 16,
     alignItems: 'center'
   },
@@ -264,7 +265,7 @@ const styles = StyleSheet.create({
   vs: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#55556d',
+    color: '#6b7280',
     letterSpacing: 1
   },
   badge: {
@@ -274,14 +275,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 18,
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     minWidth: 120,
     borderWidth: 3,
     borderColor: 'transparent'
   },
   badgePlayerActive: {
-    backgroundColor: '#fff2f6',
-    borderColor: '#ff8fab'
+    backgroundColor: '#ede9fe',
+    borderColor: '#7c3aed'
   },
   badgeOwlActive: {
     backgroundColor: '#e5f2ff',
@@ -291,18 +292,18 @@ const styles = StyleSheet.create({
   badgeWho: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#55556d',
+    color: '#6b7280',
     textTransform: 'uppercase',
     letterSpacing: 0.5
   },
   badgeWord: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#2b2b3d'
+    color: '#1e1b4b'
   },
   board: {
     padding: 10,
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     borderRadius: 22,
     gap: 8,
     shadowColor: '#000',
@@ -326,7 +327,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent'
   },
   cellPlayer: {
-    backgroundColor: '#ffe4ec',
+    backgroundColor: '#ede9fe',
     borderColor: '#ff8fab66'
   },
   cellOwl: {
@@ -349,7 +350,7 @@ const styles = StyleSheet.create({
   cellWord: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#2b2b3d'
+    color: '#1e1b4b'
   },
   resultBanner: {
     flexDirection: 'row',
@@ -360,9 +361,9 @@ const styles = StyleSheet.create({
     borderRadius: 999
   },
   resultLose: { backgroundColor: '#e5f2ff' },
-  resultTie: { backgroundColor: '#fff2c8' },
+  resultTie: { backgroundColor: '#fef3c7' },
   resultEmoji: { fontSize: 26, lineHeight: 30 },
-  resultText: { fontSize: 16, fontWeight: '800', color: '#2b2b3d' },
+  resultText: { fontSize: 16, fontWeight: '800', color: '#1e1b4b' },
   buttons: {
     flexDirection: 'row',
     gap: 10,
@@ -376,8 +377,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   },
-  btnPrimary: { backgroundColor: '#ff8fab' },
+  btnPrimary: { backgroundColor: '#7c3aed' },
   btnPrimaryText: { color: '#fff', fontWeight: '800', fontSize: 16 },
-  btnGhost: { backgroundColor: '#fff', borderWidth: 2, borderColor: '#e0e0e8' },
-  btnGhostText: { color: '#2b2b3d', fontWeight: '800', fontSize: 14 }
+  btnGhost: { backgroundColor: '#ffffff', borderWidth: 2, borderColor: '#e5e5f0' },
+  btnGhostText: { color: '#1e1b4b', fontWeight: '800', fontSize: 14 }
 });

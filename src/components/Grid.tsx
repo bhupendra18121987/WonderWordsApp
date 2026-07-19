@@ -15,6 +15,8 @@ import type { Cell, Language } from '../core/types';
 interface GridProps {
   grid: string[][];
   foundCells?: Cell[];
+  /** Optional per-word coloring for found cells (matches WordList chip color). */
+  foundGroups?: { cells: Cell[]; color: { bg: string; dark: string } }[];
   hintCells?: Cell[];
   wrongCells?: Cell[];
   highlightVowels?: boolean;
@@ -40,6 +42,7 @@ const GRID_PADDING = 8;
 export default function Grid({
   grid,
   foundCells = [],
+  foundGroups,
   hintCells = [],
   wrongCells = [],
   highlightVowels = false,
@@ -166,6 +169,15 @@ export default function Grid({
   const foundSet = useMemo(() => new Set(foundCells.map((c) => `${c.r},${c.c}`)), [foundCells]);
   const hintSet = useMemo(() => new Set(hintCells.map((c) => `${c.r},${c.c}`)), [hintCells]);
   const wrongSet = useMemo(() => new Set(wrongCells.map((c) => `${c.r},${c.c}`)), [wrongCells]);
+  const cellColor = useMemo(() => {
+    const map = new Map<string, { bg: string; dark: string }>();
+    if (foundGroups) {
+      for (const g of foundGroups) {
+        for (const c of g.cells) map.set(`${c.r},${c.c}`, g.color);
+      }
+    }
+    return map;
+  }, [foundGroups]);
 
   // Wrong-cell shake animation
   const shakeAnim = useRef(new Animated.Value(0)).current;
@@ -195,6 +207,7 @@ export default function Grid({
             const isHint = hintSet.has(key);
             const isWrong = wrongSet.has(key);
             const vowel = highlightVowels && isVowelForLang(letter, language);
+            const groupColor = isFound ? cellColor.get(key) : undefined;
             const style = [
               styles.cell,
               { width: cellSize, height: cellSize },
@@ -202,6 +215,7 @@ export default function Grid({
               isActive && styles.cellActive,
               isHint && !isFound && styles.cellHint,
               isFound && styles.cellFound,
+              isFound && groupColor && { backgroundColor: groupColor.bg, borderWidth: 2, borderColor: groupColor.dark },
               isWrong && styles.cellWrong
             ];
             const inner = (
@@ -241,7 +255,7 @@ export default function Grid({
 const styles = StyleSheet.create({
   grid: {
     padding: GRID_PADDING,
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     borderRadius: 22,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
@@ -279,10 +293,10 @@ const styles = StyleSheet.create({
   cellText: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#2b2b3d'
+    color: '#1e1b4b'
   },
   cellTextActive: {
-    color: '#2b2b3d'
+    color: '#1e1b4b'
   },
   cellTextFound: {
     color: '#fff'

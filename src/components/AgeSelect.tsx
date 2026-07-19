@@ -1,6 +1,17 @@
+import { useEffect, useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getWordsData } from '../core/data';
+import { colors, radii, shadow } from '../core/theme';
 import type { AgeGroupKey, Language } from '../core/types';
+import BackButton from './BackButton';
+import {
+  BearAvatar,
+  BunnyAvatar,
+  LionAvatar,
+  StarMascot
+} from './AgeAssets';
 
 interface AgeSelectProps {
   selected: AgeGroupKey | null;
@@ -8,149 +19,188 @@ interface AgeSelectProps {
   step?: { current: number; total: number };
   onSelect: (key: AgeGroupKey) => void;
   onStart: () => void;
+  /** Optional back handler; shown as a small button when set (post-setup). */
+  onBack?: () => void;
 }
+
+const AVATARS: ReactNode[] = [
+  <BearAvatar size={72} />,
+  <BunnyAvatar size={72} />,
+  <LionAvatar size={72} />
+];
+const TINTS = [
+  { bg: '#b8f597', dark: '#5fac3f' },
+  { bg: '#ffe58a', dark: '#de961e' },
+  { bg: '#8ed2ff', dark: '#2e84ca' }
+];
 
 export default function AgeSelect({
   selected,
   language,
-  step,
   onSelect,
-  onStart
+  onStart,
+  onBack
 }: AgeSelectProps) {
+  const insets = useSafeAreaInsets();
   const wordsData = getWordsData(language);
   const groups = Object.entries(wordsData.ageGroups) as [
     AgeGroupKey,
     typeof wordsData.ageGroups[AgeGroupKey]
   ][];
   const isHi = language === 'hi';
+  const [pendingStart, setPendingStart] = useState<AgeGroupKey | null>(null);
+
+  const handlePick = (key: AgeGroupKey) => {
+    setPendingStart(key);
+    onSelect(key);
+  };
+
+  useEffect(() => {
+    if (pendingStart && selected === pendingStart) {
+      setPendingStart(null);
+      onStart();
+    }
+  }, [pendingStart, selected, onStart]);
 
   return (
-    <View style={styles.container}>
-      {step && (
-        <View style={styles.progress}>
-          {Array.from({ length: step.total }).map((_, i) => (
-            <View
-              key={i}
-              style={[
-                styles.dot,
-                i < step.current - 1 && styles.dotDone,
-                i === step.current - 1 && styles.dotActive
-              ]}
-            />
-          ))}
+    <LinearGradient
+      colors={['#c8a3ff', '#dcc4ff', '#fff6e2', '#fff9ed']}
+      locations={[0, 0.22, 0.46, 1]}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={[styles.screen, { paddingTop: insets.top + 12 }]}
+    >
+      {onBack ? (
+        <View style={styles.backWrap}>
+          <BackButton onPress={onBack} variant="dark" />
         </View>
-      )}
+      ) : null}
 
-      <Text style={styles.title}>
-        {isHi ? 'अपनी उम्र चुनो, स्टार!' : 'Pick your age, superstar!'}
-      </Text>
-      <Text style={styles.lead}>
-        {isHi
-          ? 'हम तुम्हारे लिए बिलकुल सही पहेलियाँ बनाएँगे।'
-          : "We'll make puzzles just right for you."}
-      </Text>
-
-      <View style={styles.grid}>
-        {groups.map(([key, g]) => (
-          <Pressable
-            key={key}
-            style={[styles.card, selected === key && styles.cardSelected]}
-            onPress={() => onSelect(key)}
-          >
-            <Text style={styles.emoji}>{g.emoji}</Text>
-            <Text style={styles.label}>{g.label}</Text>
-            <Text style={styles.desc}>
-              {g.gridSize}×{g.gridSize} · {g.wordsPerPuzzle} {isHi ? 'शब्द' : 'words'}
-            </Text>
-          </Pressable>
-        ))}
+      <View style={styles.starWrap}>
+        <StarMascot size={64} />
       </View>
 
-      <Pressable
-        style={[styles.startBtn, !selected && styles.startBtnDisabled]}
-        onPress={onStart}
-        disabled={!selected}
-      >
-        <Text style={styles.startBtnText}>
-          {isHi ? 'चलो खेलें! 🎈' : "Let's play! 🎈"}
+      <View style={styles.ribbon}>
+        <Text style={styles.ribbonText}>
+          {isHi ? 'चलो शुरू करें!' : "Let's Get Started!"}
         </Text>
-      </Pressable>
-    </View>
+      </View>
+
+      <Text style={styles.prompt}>
+        {isHi ? 'अपनी उम्र चुनो' : 'Choose your age group'}
+      </Text>
+
+      <View style={styles.stack}>
+        {groups.map(([key, g], idx) => {
+          const tint = TINTS[idx % TINTS.length];
+          const active = selected === key;
+          return (
+            <Pressable
+              key={key}
+              onPress={() => handlePick(key)}
+              style={({ pressed }) => [
+                styles.pill,
+                { backgroundColor: tint.bg, borderColor: active ? colors.primaryDark : tint.dark },
+                pressed && styles.pillPressed
+              ]}
+            >
+              <View style={styles.avatar}>{AVATARS[idx % AVATARS.length]}</View>
+              <View style={styles.meta}>
+                <Text style={styles.ageLabel}>{g.label}</Text>
+                <Text style={styles.ageYears}>{isHi ? 'साल' : 'Years'}</Text>
+              </View>
+              <Text style={[styles.chev, { color: tint.dark }]}>›</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <View style={styles.dots}>
+        <View style={[styles.dot, styles.dotOff]} />
+        <View style={[styles.dot, styles.dotOn]} />
+        <View style={[styles.dot, styles.dotOff]} />
+      </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    padding: 24,
-    paddingTop: 60,
-    backgroundColor: '#fff7d6',
-    alignItems: 'center',
-    gap: 12
-  },
-  progress: {
-    flexDirection: 'row',
-    gap: 10,
-    padding: 8,
     paddingHorizontal: 16,
+    alignItems: 'center'
+  },
+  backWrap: {
+    position: 'absolute',
+    top: 14,
+    left: 14,
+    zIndex: 5
+  },
+  starWrap: { marginTop: 6, marginBottom: 4 },
+  ribbon: {
+    width: '92%',
+    backgroundColor: '#7a3ee8',
+    paddingVertical: 12,
+    borderRadius: radii.md,
+    alignItems: 'center',
+    marginTop: 6,
+    marginBottom: 12,
+    shadowColor: '#4a1eae',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 6
+  },
+  ribbonText: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: '900',
+    textShadowColor: 'rgba(30,15,110,0.55)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 0
+  },
+  prompt: { color: '#1f2258', fontSize: 15, fontWeight: '900', marginBottom: 14 },
+  stack: { width: '92%', gap: 14 },
+  pill: {
+    minHeight: 90,
+    borderRadius: 24,
+    borderWidth: 2,
+    paddingLeft: 74,
+    paddingRight: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    position: 'relative',
+    ...shadow.soft
+  },
+  pillPressed: { opacity: 0.9, transform: [{ scale: 0.98 }] },
+  avatar: {
+    position: 'absolute',
+    left: -14,
+    width: 76,
+    height: 76,
+    borderRadius: 38,
     backgroundColor: '#fff',
-    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(0,0,0,0.08)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.14,
     shadowRadius: 8,
-    elevation: 2
+    elevation: 3
   },
-  dot: { width: 14, height: 14, borderRadius: 7, backgroundColor: '#e0e0e8' },
-  dotDone: { backgroundColor: '#58c896' },
-  dotActive: { backgroundColor: '#ff8fab', transform: [{ scale: 1.35 }] },
-  title: {
-    fontSize: 30,
-    fontWeight: '800',
-    color: '#e26a89',
-    textAlign: 'center',
-    marginTop: 8
+  meta: { flex: 1 },
+  ageLabel: { fontSize: 19, fontWeight: '900', color: '#1e1b4b' },
+  ageYears: { marginTop: -2, fontSize: 15, fontWeight: '800', color: '#1e1b4b' },
+  chev: { fontSize: 34, fontWeight: '900', lineHeight: 38 },
+  dots: {
+    marginTop: 'auto',
+    marginBottom: 20,
+    flexDirection: 'row',
+    gap: 8
   },
-  lead: {
-    fontSize: 15,
-    color: '#55556d',
-    textAlign: 'center',
-    maxWidth: 320
-  },
-  grid: {
-    marginTop: 16,
-    gap: 14,
-    width: '100%',
-    maxWidth: 400
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 28,
-    padding: 22,
-    alignItems: 'center',
-    gap: 6,
-    borderWidth: 4,
-    borderColor: 'transparent',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 4
-  },
-  cardSelected: {
-    borderColor: '#ffcf5c',
-    backgroundColor: '#fff8e1'
-  },
-  emoji: { fontSize: 52 },
-  label: { fontSize: 22, fontWeight: '800', color: '#e26a89' },
-  desc: { fontSize: 14, color: '#55556d', fontWeight: '700' },
-  startBtn: {
-    marginTop: 12,
-    backgroundColor: '#ff8fab',
-    paddingVertical: 18,
-    paddingHorizontal: 36,
-    borderRadius: 999
-  },
-  startBtnDisabled: { opacity: 0.5 },
-  startBtnText: { fontSize: 20, fontWeight: '800', color: '#fff' }
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  dotOn: { backgroundColor: '#fff', width: 10, height: 10, borderRadius: 5 },
+  dotOff: { backgroundColor: 'rgba(255,255,255,0.6)' }
 });

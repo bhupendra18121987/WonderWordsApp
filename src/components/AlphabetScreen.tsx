@@ -66,19 +66,19 @@ export default function AlphabetScreen({ language, onBack, onSpeak }: AlphabetSc
             title={cfg.vowelLabel === 'vowel' ? 'Vowels' : cfg.vowelLabel}
             letters={entry.vowels}
             tone="vowel"
-            onSpeak={(l) => onSpeak(l.exampleWord ? `${l.letter}. ${l.exampleWord}` : l.letter, 'vowel')}
+            onSpeak={(l) => onSpeak(l.exampleWord ? `${l.letter}. ${l.exampleWord}` : l.letter, cfg.vowelLabel)}
           />
           <LetterSection
             title={cfg.consonantLabel === 'consonant' ? 'Consonants' : cfg.consonantLabel}
             letters={entry.consonants}
             tone="consonant"
-            onSpeak={(l) => onSpeak(l.exampleWord ? `${l.letter}. ${l.exampleWord}` : l.letter, 'consonant')}
+            onSpeak={(l) => onSpeak(l.exampleWord ? `${l.letter}. ${l.exampleWord}` : l.letter, cfg.consonantLabel)}
           />
         </>
       ) : (
         <BarahkhadiView
           language={language}
-          onSpeak={(akshara) => onSpeak(akshara, 'consonant')}
+          onSpeak={(akshara) => onSpeak(akshara)}
         />
       )}
 
@@ -144,20 +144,20 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 40,
     paddingBottom: 120,
-    backgroundColor: '#fff7d6',
+    backgroundColor: '#f3f0ff',
     gap: 14
   },
   title: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#e26a89',
+    color: '#6d28d9',
     textAlign: 'center'
   },
   tabs: {
     flexDirection: 'row',
     gap: 6,
     padding: 6,
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     borderRadius: 999,
     alignSelf: 'center',
     shadowColor: '#000',
@@ -172,12 +172,12 @@ const styles = StyleSheet.create({
     borderRadius: 999
   },
   tabActive: {
-    backgroundColor: '#ff8fab'
+    backgroundColor: '#7c3aed'
   },
   tabText: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#55556d'
+    color: '#6b7280'
   },
   tabTextActive: {
     color: '#fff'
@@ -188,16 +188,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   statPill: {
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     borderRadius: 999,
     paddingVertical: 6,
     paddingHorizontal: 14
   },
-  statText: { fontSize: 13, fontWeight: '800', color: '#2b2b3d' },
+  statText: { fontSize: 13, fontWeight: '800', color: '#1e1b4b' },
   sectionTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#e26a89',
+    color: '#6d28d9',
     textAlign: 'center'
   },
   letterGrid: {
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     borderWidth: 3
   },
   letterCardVowel: {
-    backgroundColor: '#ffe4ec',
+    backgroundColor: '#ede9fe',
     borderColor: '#ff8fab55'
   },
   letterCardConsonant: {
@@ -229,12 +229,12 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     lineHeight: 38
   },
-  letterVowel: { color: '#e26a89' },
+  letterVowel: { color: '#6d28d9' },
   letterConsonant: { color: '#3ba7ea' },
   transliteration: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#55556d',
+    color: '#6b7280',
     textTransform: 'lowercase'
   },
   divider: {
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
   exampleWord: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#2b2b3d'
+    color: '#1e1b4b'
   },
   placeholder: {
     fontSize: 22,
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
   },
   back: {
     marginTop: 16,
-    backgroundColor: '#ff8fab',
+    backgroundColor: '#7c3aed',
     paddingVertical: 14,
     paddingHorizontal: 22,
     borderRadius: 999,

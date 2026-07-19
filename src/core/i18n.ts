@@ -38,6 +38,10 @@ export interface UIStrings {
   navWords: string;
   navLetters: string;
   navSettings: string;
+  navLevels: string;
+  navRewards: string;
+  navProfile: string;
+  navAge: string;
   // Hero-card CTA
   playNow: string;
   // Alphabet screen modes
@@ -71,6 +75,85 @@ export interface UIStrings {
   onboardBack: string;
   onboardSkip: string;
   onboardStart: string;
+  // Settings panel
+  settingsTitle: string;
+  settingsLangGroup: string;
+  toggleSound: string;
+  toggleLetterSpeech: string;
+  toggleAnnounceLetterType: (vowel: string, consonant: string) => string;
+  toggleHighlightVowels: string;
+  toggleHighContrast: string;
+  badgeOn: string;
+  badgeOff: string;
+  settingsDone: string;
+  settingsResetScores: string;
+  settingsResetAll: string;
+  settingsHint: string;
+  // Reset confirm dialogs
+  resetAllTitle: string;
+  resetAllMessage: string;
+  resetAllConfirm: string;
+  resetScoresTitle: string;
+  resetScoresMessage: string;
+  resetScoresConfirm: string;
+  restartLevelTitle: string;
+  restartLevelMessage: string;
+  restartLevelConfirm: string;
+  confirmCancel: string;
+  // Mini-games hub
+  miniGamesTile: string;
+  miniGamesTileSub: string;
+  miniGamesTitle: string;
+  miniGamesSubtitle: string;
+  comingSoon: string;
+  // Letter Hunt
+  letterHuntName: string;
+  letterHuntSub: string;
+  letterHuntPrompt: (letter: string) => string;
+  // Tap the Color
+  tapColorName: string;
+  tapColorSub: string;
+  tapColorPrompt: (colorLabel: string) => string;
+  // Missing Letter
+  missingLetterName: string;
+  missingLetterSub: string;
+  missingLetterPrompt: string;
+  // Antonym Pairs
+  antonymName: string;
+  antonymSub: string;
+  antonymPrompt: string;
+  // Shared feedback
+  correctFeedback: string;
+  tryAgainFeedback: string;
+  scoreLabel: (n: number) => string;
+  roundLabel: (n: number, total: number) => string;
+  // Alphabet Karaoke
+  karaokeName: string;
+  karaokeSub: string;
+  karaokePlay: string;
+  karaokePause: string;
+  karaokeRestart: string;
+  // Two-Player
+  twoPlayerName: string;
+  twoPlayerSub: string;
+  player1: string;
+  player2: string;
+  playerTurn: (name: string) => string;
+  winnerAnnounce: (name: string) => string;
+  winnerTie: string;
+  // Trace a Letter
+  traceName: string;
+  traceSub: string;
+  traceClear: string;
+  tracePrev: string;
+  traceNext: string;
+  traceModeCaps: string;
+  traceModeSmall: string;
+  traceModeCursive: string;
+  traceModeHiLetters: string;
+  traceModeHiWords: string;
+  // Misc labels
+  badgesTitle: string;
 }
 
 const en: UIStrings = {
@@ -106,6 +189,10 @@ const en: UIStrings = {
   navWords: 'Words',
   navLetters: 'Letters',
   navSettings: 'Settings',
+  navLevels: 'Levels',
+  navRewards: 'Rewards',
+  navProfile: 'Profile',
+  navAge: 'Age',
   playNow: '🎮 Play now',
   alphabetMode: 'Letters',
   barahkhadiMode: 'Barahkhadi',
@@ -134,7 +221,74 @@ const en: UIStrings = {
   onboardNext: 'Next →',
   onboardBack: 'Back',
   onboardSkip: 'Skip',
-  onboardStart: "Let's go! 🚀"
+  onboardStart: "Let's go! 🚀",
+  settingsTitle: 'Settings',
+  settingsLangGroup: '🌐 Language',
+  toggleSound: 'Voice & sound effects',
+  toggleLetterSpeech: 'Say letters when I drag',
+  toggleAnnounceLetterType: (v, c) => `Announce "${v}" / "${c}"`,
+  toggleHighlightVowels: 'Highlight vowels in the puzzle',
+  toggleHighContrast: 'High-contrast colors',
+  badgeOn: '✓ ON',
+  badgeOff: 'OFF',
+  settingsDone: 'Done',
+  settingsResetScores: 'Reset scores',
+  settingsResetAll: 'Reset all',
+  settingsHint: '"Reset scores" keeps learned words & badges. "Reset all" clears everything.',
+  resetAllTitle: 'Start completely fresh?',
+  resetAllMessage: 'This will erase your stars, badges, learned words — everything.',
+  resetAllConfirm: 'Yes, reset all',
+  resetScoresTitle: 'Reset your scores?',
+  resetScoresMessage: 'Your stars and level will go back to 0. Learned words and badges stay safe!',
+  resetScoresConfirm: 'Yes, reset scores',
+  restartLevelTitle: 'Start again from Level 1?',
+  restartLevelMessage: 'Stars, badges and learned words will stay — only the level goes back to 1.',
+  restartLevelConfirm: 'Yes, restart',
+  confirmCancel: 'No',
+  miniGamesTile: 'Mini games',
+  miniGamesTileSub: 'More fun!',
+  miniGamesTitle: '🎮 Mini games',
+  miniGamesSubtitle: 'Pick a game to play',
+  comingSoon: 'Coming soon',
+  letterHuntName: 'Letter Hunt',
+  letterHuntSub: 'Find the letter!',
+  letterHuntPrompt: (l) => `Tap the letter ${l}`,
+  tapColorName: 'Tap the Color',
+  tapColorSub: 'Find the color!',
+  tapColorPrompt: (c) => `Tap the ${c} circle`,
+  missingLetterName: 'Missing Letter',
+  missingLetterSub: 'Fill the blank',
+  missingLetterPrompt: 'Which letter is missing?',
+  antonymName: 'Antonym Pairs',
+  antonymSub: 'Match the opposites',
+  antonymPrompt: 'Find the matching pairs',
+  correctFeedback: 'Yes! 🎉',
+  tryAgainFeedback: 'Try again',
+  scoreLabel: (n) => `⭐ ${n}`,
+  roundLabel: (n, total) => `${n} / ${total}`,
+  karaokeName: 'Alphabet Karaoke',
+  karaokeSub: 'Sing the alphabet!',
+  karaokePlay: '▶️ Play',
+  karaokePause: '⏸ Pause',
+  karaokeRestart: '🔄 Restart',
+  twoPlayerName: 'Two-player',
+  twoPlayerSub: 'Take turns!',
+  player1: 'Player 1',
+  player2: 'Player 2',
+  playerTurn: (name) => `${name}'s turn`,
+  winnerAnnounce: (name) => `${name} wins! 🏆`,
+  winnerTie: "It's a tie!",
+  traceName: 'Trace a Letter',
+  traceSub: 'Draw with your finger!',
+  traceClear: '🧽 Clear',
+  tracePrev: '←',
+  traceNext: '→',
+  traceModeCaps: 'A B C',
+  traceModeSmall: 'a b c',
+  traceModeCursive: '𝒜 𝒷 𝒬',
+  traceModeHiLetters: 'अ आ इ',
+  traceModeHiWords: 'आम',
+  badgesTitle: '🏅 Badges'
 };
 
 const hi: UIStrings = {
@@ -170,6 +324,10 @@ const hi: UIStrings = {
   navWords: 'शब्द',
   navLetters: 'अक्षर',
   navSettings: 'सेटिंग',
+  navLevels: 'स्तर',
+  navRewards: 'पुरस्कार',
+  navProfile: 'प्रोफ़ाइल',
+  navAge: 'उम्र',
   playNow: '🎮 अभी खेलो',
   alphabetMode: 'अक्षर',
   barahkhadiMode: 'बारहखड़ी',
@@ -198,7 +356,74 @@ const hi: UIStrings = {
   onboardNext: 'आगे →',
   onboardBack: 'पीछे',
   onboardSkip: 'छोड़ो',
-  onboardStart: 'चलो शुरू करें! 🚀'
+  onboardStart: 'चलो शुरू करें! 🚀',
+  settingsTitle: 'सेटिंग',
+  settingsLangGroup: '🌐 भाषा',
+  toggleSound: 'आवाज़ और ध्वनि प्रभाव',
+  toggleLetterSpeech: 'उंगली फिराने पर अक्षर बोलो',
+  toggleAnnounceLetterType: (v, c) => `"${v}" / "${c}" बोलो`,
+  toggleHighlightVowels: 'पहेली में स्वर उभारो',
+  toggleHighContrast: 'गहरे रंग',
+  badgeOn: '✓ चालू',
+  badgeOff: 'बंद',
+  settingsDone: 'हो गया',
+  settingsResetScores: 'अंक शून्य करो',
+  settingsResetAll: 'सब मिटाओ',
+  settingsHint: '"अंक शून्य करो" से सीखे शब्द और बैज बचे रहेंगे। "सब मिटाओ" से सब कुछ मिट जाएगा।',
+  resetAllTitle: 'क्या पूरी तरह नई शुरुआत करें?',
+  resetAllMessage: 'इससे तुम्हारे सितारे, बैज, सीखे शब्द — सब कुछ मिट जाएगा।',
+  resetAllConfirm: 'हाँ, सब मिटाओ',
+  resetScoresTitle: 'क्या अंक शून्य करें?',
+  resetScoresMessage: 'तुम्हारे सितारे और स्तर 0 हो जाएंगे। सीखे शब्द और बैज सुरक्षित रहेंगे!',
+  resetScoresConfirm: 'हाँ, अंक शून्य करो',
+  restartLevelTitle: 'क्या स्तर 1 से फिर शुरू करें?',
+  restartLevelMessage: 'सितारे, बैज और सीखे शब्द बने रहेंगे — केवल स्तर 1 हो जाएगा।',
+  restartLevelConfirm: 'हाँ, शुरू करो',
+  confirmCancel: 'नहीं',
+  miniGamesTile: 'खेल',
+  miniGamesTileSub: 'और मज़ा!',
+  miniGamesTitle: '🎮 छोटे खेल',
+  miniGamesSubtitle: 'खेलने के लिए एक चुनो',
+  comingSoon: 'जल्द ही',
+  letterHuntName: 'अक्षर ढूंढो',
+  letterHuntSub: 'अक्षर खोजो!',
+  letterHuntPrompt: (l) => `अक्षर ${l} छूओ`,
+  tapColorName: 'रंग छूओ',
+  tapColorSub: 'रंग खोजो!',
+  tapColorPrompt: (c) => `${c} गोला छूओ`,
+  missingLetterName: 'गायब अक्षर',
+  missingLetterSub: 'खाली भरो',
+  missingLetterPrompt: 'कौन सा अक्षर गायब है?',
+  antonymName: 'विपरीत जोड़ी',
+  antonymSub: 'उल्टे शब्द मिलाओ',
+  antonymPrompt: 'मिलती जोड़ी ढूंढो',
+  correctFeedback: 'सही! 🎉',
+  tryAgainFeedback: 'फिर से कोशिश करो',
+  scoreLabel: (n) => `⭐ ${n}`,
+  roundLabel: (n, total) => `${n} / ${total}`,
+  karaokeName: 'अक्षर गाना',
+  karaokeSub: 'वर्णमाला गाओ!',
+  karaokePlay: '▶️ चलाओ',
+  karaokePause: '⏸ रोको',
+  karaokeRestart: '🔄 फिर से',
+  twoPlayerName: 'दो खिलाड़ी',
+  twoPlayerSub: 'बारी-बारी से खेलो!',
+  player1: 'खिलाड़ी 1',
+  player2: 'खिलाड़ी 2',
+  playerTurn: (name) => `${name} की बारी`,
+  winnerAnnounce: (name) => `${name} जीता! 🏆`,
+  winnerTie: 'बराबरी है!',
+  traceName: 'अक्षर लिखो',
+  traceSub: 'उंगली से बनाओ!',
+  traceClear: '🧽 मिटाओ',
+  tracePrev: '←',
+  traceNext: '→',
+  traceModeCaps: 'A B C',
+  traceModeSmall: 'a b c',
+  traceModeCursive: '𝒜 𝒷 𝒬',
+  traceModeHiLetters: 'अ आ इ',
+  traceModeHiWords: 'आम',
+  badgesTitle: '🏅 बैज'
 };
 
 const DICT: Record<Language, UIStrings> = { en, hi };

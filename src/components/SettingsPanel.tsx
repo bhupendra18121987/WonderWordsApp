@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import type { Language, Settings } from '../core/types';
 import { LANGUAGE_CONFIG } from '../core/languages';
+import { t } from '../core/i18n';
 
 interface SettingsPanelProps {
   open: boolean;
@@ -22,10 +23,12 @@ interface ToggleRowProps {
   emoji: string;
   label: string;
   checked: boolean;
+  onLabel: string;
+  offLabel: string;
   onChange: (next: boolean) => void;
 }
 
-function ToggleRow({ emoji, label, checked, onChange }: ToggleRowProps) {
+function ToggleRow({ emoji, label, checked, onLabel, offLabel, onChange }: ToggleRowProps) {
   return (
     <Pressable
       style={[styles.toggle, checked ? styles.toggleOn : styles.toggleOff]}
@@ -41,7 +44,7 @@ function ToggleRow({ emoji, label, checked, onChange }: ToggleRowProps) {
       </View>
       <View style={[styles.badge, checked ? styles.badgeOn : styles.badgeOff]}>
         <Text style={[styles.badgeText, checked ? styles.badgeTextOn : styles.badgeTextOff]}>
-          {checked ? '✓ ON' : 'OFF'}
+          {checked ? onLabel : offLabel}
         </Text>
       </View>
     </Pressable>
@@ -58,6 +61,8 @@ export default function SettingsPanel({
 }: SettingsPanelProps) {
   const update = (patch: Partial<Settings>) => onChange({ ...settings, ...patch });
   const languages = Object.entries(LANGUAGE_CONFIG) as [Language, typeof LANGUAGE_CONFIG[Language]][];
+  const strings = t(settings.language);
+  const activeCfg = LANGUAGE_CONFIG[settings.language];
 
   if (!open) return null;
 
@@ -67,7 +72,7 @@ export default function SettingsPanel({
         <View style={styles.modal}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>Settings</Text>
+            <Text style={styles.title}>{strings.settingsTitle}</Text>
             <Pressable style={styles.closeBtn} onPress={onClose}>
               <Text style={styles.closeBtnText}>×</Text>
             </Pressable>
@@ -81,7 +86,7 @@ export default function SettingsPanel({
           >
             {/* Language */}
             <View style={styles.group}>
-              <Text style={styles.groupTitle}>🌐 Language</Text>
+              <Text style={styles.groupTitle}>{strings.settingsLangGroup}</Text>
               <View style={styles.langRow}>
                 {languages.map(([key, cfg]) => (
                   <Pressable
@@ -109,32 +114,42 @@ export default function SettingsPanel({
             <View style={styles.group}>
               <ToggleRow
                 emoji="🔊"
-                label="Voice & sound effects"
+                label={strings.toggleSound}
                 checked={settings.sound}
+                onLabel={strings.badgeOn}
+                offLabel={strings.badgeOff}
                 onChange={(v) => update({ sound: v })}
               />
               <ToggleRow
                 emoji="🗣️"
-                label="Say letters when I drag"
+                label={strings.toggleLetterSpeech}
                 checked={settings.letterSpeech}
+                onLabel={strings.badgeOn}
+                offLabel={strings.badgeOff}
                 onChange={(v) => update({ letterSpeech: v })}
               />
               <ToggleRow
                 emoji="🔤"
-                label={'Announce "vowel" / "consonant"'}
+                label={strings.toggleAnnounceLetterType(activeCfg.vowelLabel, activeCfg.consonantLabel)}
                 checked={settings.announceLetterType}
+                onLabel={strings.badgeOn}
+                offLabel={strings.badgeOff}
                 onChange={(v) => update({ announceLetterType: v })}
               />
               <ToggleRow
                 emoji="🌸"
-                label="Highlight vowels in the puzzle"
+                label={strings.toggleHighlightVowels}
                 checked={settings.highlightVowels}
+                onLabel={strings.badgeOn}
+                offLabel={strings.badgeOff}
                 onChange={(v) => update({ highlightVowels: v })}
               />
               <ToggleRow
                 emoji="🌈"
-                label="High-contrast colors"
+                label={strings.toggleHighContrast}
                 checked={settings.highContrast}
+                onLabel={strings.badgeOn}
+                offLabel={strings.badgeOff}
                 onChange={(v) => update({ highContrast: v })}
               />
             </View>
@@ -144,18 +159,16 @@ export default function SettingsPanel({
           <View style={styles.footer}>
             <View style={styles.footerRow}>
               <Pressable style={[styles.footerBtn, styles.footerBtnPrimary]} onPress={onClose}>
-                <Text style={styles.footerBtnPrimaryText}>Done</Text>
+                <Text style={styles.footerBtnPrimaryText}>{strings.settingsDone}</Text>
               </Pressable>
               <Pressable style={[styles.footerBtn, styles.footerBtnGhost]} onPress={onResetScores}>
-                <Text style={styles.footerBtnGhostText}>Reset scores</Text>
+                <Text style={styles.footerBtnGhostText}>{strings.settingsResetScores}</Text>
               </Pressable>
               <Pressable style={[styles.footerBtn, styles.footerBtnGhost]} onPress={onReset}>
-                <Text style={styles.footerBtnGhostText}>Reset all</Text>
+                <Text style={styles.footerBtnGhostText}>{strings.settingsResetAll}</Text>
               </Pressable>
             </View>
-            <Text style={styles.hint}>
-              "Reset scores" keeps learned words &amp; badges. "Reset all" clears everything.
-            </Text>
+            <Text style={styles.hint}>{strings.settingsHint}</Text>
           </View>
         </View>
       </View>
@@ -172,11 +185,16 @@ const styles = StyleSheet.create({
     padding: 16
   },
   modal: {
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     borderRadius: 28,
     maxWidth: 460,
     width: '100%',
     maxHeight: '92%',
+    // flexShrink lets the card cap at maxHeight while still
+    // giving its children (the ScrollView) a bounded height to
+    // measure against. Without this, Android release builds
+    // render the ScrollView at height 0 and the modal looks blank.
+    flexShrink: 1,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 12 },
@@ -196,7 +214,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#e26a89'
+    color: '#6d28d9'
   },
   closeBtn: {
     width: 36,
@@ -206,13 +224,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   },
-  closeBtnText: { fontSize: 20, color: '#2b2b3d', fontWeight: '800' },
+  closeBtnText: { fontSize: 20, color: '#1e1b4b', fontWeight: '800' },
 
-  content: { flex: 1 },
+  // flexShrink (not flex:1) so the ScrollView shrinks to the space
+  // between header and footer within the modal's maxHeight cap.
+  content: { flexShrink: 1 },
   contentInner: { padding: 16, gap: 14 },
 
   group: { gap: 8 },
-  groupTitle: { fontSize: 15, fontWeight: '800', color: '#e26a89' },
+  groupTitle: { fontSize: 15, fontWeight: '800', color: '#6d28d9' },
 
   langRow: {
     flexDirection: 'row',
@@ -225,13 +245,13 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 999,
-    backgroundColor: '#f0f0f5',
+    backgroundColor: '#faf7ff',
     alignItems: 'center'
   },
   langBtnActive: {
-    backgroundColor: '#ff8fab'
+    backgroundColor: '#7c3aed'
   },
-  langBtnText: { fontWeight: '800', color: '#2b2b3d', fontSize: 15 },
+  langBtnText: { fontWeight: '800', color: '#1e1b4b', fontSize: 15 },
   langBtnTextActive: { color: '#fff' },
 
   toggle: {
@@ -245,11 +265,11 @@ const styles = StyleSheet.create({
     borderColor: 'transparent'
   },
   toggleOn: {
-    backgroundColor: '#fff2f6',
+    backgroundColor: '#ede9fe',
     borderColor: '#ff8fab88'
   },
   toggleOff: {
-    backgroundColor: '#ececf1',
+    backgroundColor: '#faf7ff',
     opacity: 0.9
   },
   toggleLabel: {
@@ -263,10 +283,10 @@ const styles = StyleSheet.create({
   toggleText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#2b2b3d',
+    color: '#1e1b4b',
     flexShrink: 1
   },
-  toggleTextOff: { color: '#7a7a8a' },
+  toggleTextOff: { color: '#8b7ea8' },
   badge: {
     minWidth: 56,
     paddingVertical: 6,
@@ -275,10 +295,10 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   badgeOn: { backgroundColor: '#58c896' },
-  badgeOff: { backgroundColor: '#d5d5e0' },
+  badgeOff: { backgroundColor: '#e5e5f0' },
   badgeText: { fontSize: 12, fontWeight: '800', letterSpacing: 0.5 },
   badgeTextOn: { color: '#fff' },
-  badgeTextOff: { color: '#6a6a80' },
+  badgeTextOff: { color: '#8b7ea8' },
 
   footer: {
     padding: 12,
@@ -298,13 +318,13 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     minHeight: 40
   },
-  footerBtnPrimary: { backgroundColor: '#ff8fab' },
+  footerBtnPrimary: { backgroundColor: '#7c3aed' },
   footerBtnPrimaryText: { color: '#fff', fontWeight: '800', fontSize: 14 },
-  footerBtnGhost: { backgroundColor: '#fff', borderWidth: 2, borderColor: '#e0e0e8' },
-  footerBtnGhostText: { color: '#2b2b3d', fontWeight: '800', fontSize: 12 },
+  footerBtnGhost: { backgroundColor: '#ffffff', borderWidth: 2, borderColor: '#e5e5f0' },
+  footerBtnGhostText: { color: '#1e1b4b', fontWeight: '800', fontSize: 12 },
   hint: {
     fontSize: 11,
-    color: '#55556d',
+    color: '#6b7280',
     textAlign: 'center',
     lineHeight: 15
   }

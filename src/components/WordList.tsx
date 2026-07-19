@@ -1,27 +1,38 @@
 import { StyleSheet, Text, View } from 'react-native';
 import type { WordEntry } from '../core/types';
+import { colorForWordIndex } from './GameAssets';
 
 interface WordListProps {
   items: WordEntry[];
   foundWords: string[];
+  /** When true, chip backgrounds use the WORD_COLORS palette by index. */
+  colored?: boolean;
 }
 
-export default function WordList({ items, foundWords }: WordListProps) {
+export default function WordList({ items, foundWords, colored = false }: WordListProps) {
   const foundSet = new Set(foundWords);
   return (
     <View style={styles.container}>
-      {items.map((item) => {
+      {items.map((item, idx) => {
         const found = foundSet.has(item.word);
+        const palette = colored ? colorForWordIndex(idx) : null;
         return (
           <View
             key={item.word}
-            style={[styles.chip, found && styles.chipFound]}
+            style={[
+              styles.chip,
+              palette && { backgroundColor: palette.bg, borderColor: palette.dark },
+              found && !palette && styles.chipFound,
+              found && palette && { opacity: 0.55 }
+            ]}
           >
             <Text style={styles.chipEmoji}>{item.emoji}</Text>
             <Text
               style={[
                 styles.chipText,
-                found && styles.chipTextFound
+                palette && { color: '#1e1b4b' },
+                found && !palette && styles.chipTextFound,
+                found && palette && { textDecorationLine: 'line-through' }
               ]}
             >
               {item.word}
@@ -59,7 +70,7 @@ const styles = StyleSheet.create({
   chipText: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#2b2b3d'
+    color: '#1e1b4b'
   },
   chipTextFound: {
     color: '#fff',

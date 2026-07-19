@@ -1,274 +1,228 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { getRewardsData, getWordsData } from '../core/data';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { t } from '../core/i18n';
+import { colors, radii, shadow } from '../core/theme';
 import type { AgeGroupKey, Language, Progress } from '../core/types';
+import {
+  LevelMapScene,
+  LevelStar,
+  LockIcon,
+  PandaMascot,
+  UnlockedIcon
+} from './HomeMapAssets';
 
 interface HomeScreenProps {
   ageGroup: AgeGroupKey;
   language: Language;
   progress: Progress;
-  onPlay: () => void;
+  onPlay: (level?: number) => void;
   onReview: () => void;
   onAlphabet: () => void;
-  onTicTacToe: () => void;
-  onOnboarding: () => void;
-  onChangeAge: () => void;
+  onMiniGames: () => void;
   onRestartLevel: () => void;
 }
 
-interface TileConfig {
-  key: string;
-  tint: readonly [string, string];
-  icon: string;
-}
+type LevelPos = { top: string; left: string; color: 'orange' | 'green' | 'blue' | 'purple' };
+const LEVEL_POSITIONS: readonly LevelPos[] = [
+  { top: '86%', left: '78%', color: 'orange' },
+  { top: '66%', left: '18%', color: 'green' },
+  { top: '46%', left: '68%', color: 'blue' },
+  { top: '20%', left: '30%', color: 'purple' }
+];
 
-const TILES: Record<string, TileConfig> = {
-  play:      { key: 'play',      tint: ['#ffe4ec', '#ffc2d1'] as const, icon: '🧩' },
-  review:    { key: 'review',    tint: ['#d5f3f1', '#a0e7e5'] as const, icon: '📖' },
-  alphabet:  { key: 'alphabet',  tint: ['#ece1ff', '#d1b8ff'] as const, icon: '🔤' },
-  ticTacToe: { key: 'ticTacToe', tint: ['#fff2c8', '#ffe38b'] as const, icon: '⭕' },
-  tour:      { key: 'tour',      tint: ['#fff2c8', '#ffe38b'] as const, icon: '👋' },
-  age:       { key: 'age',       tint: ['#d5f0d8', '#a8ecc1'] as const, icon: '🎂' }
+const TILE_COLORS: Record<LevelPos['color'], { bg: string; dark: string }> = {
+  orange: { bg: '#ff9a3c', dark: '#c25f0a' },
+  green: { bg: '#3ecf5c', dark: '#2b8a3e' },
+  blue: { bg: '#4aaaf1', dark: '#1f6ebd' },
+  purple: { bg: '#a26bff', dark: '#5b21b6' }
 };
 
 export default function HomeScreen({
-  ageGroup,
   language,
   progress,
   onPlay,
   onReview,
   onAlphabet,
-  onTicTacToe,
-  onOnboarding,
-  onChangeAge,
+  onMiniGames,
   onRestartLevel
 }: HomeScreenProps) {
-  const wordsData = getWordsData(language);
-  const rewardsData = getRewardsData(language);
   const strings = t(language);
-  const group = wordsData.ageGroups[ageGroup];
+  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const learnedCount = progress.learnedWords.length;
-  const earnedBadges = new Set(progress.badges);
+  const mapWidth = width - 32;
+  const mapHeight = Math.min(460, mapWidth * 1.05);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Hero card */}
-      <LinearGradient
-        colors={['#ffd166', '#ff8fab']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.hero}
-      >
-        <View style={styles.heroCopy}>
-          <Text style={styles.heroTitle}>{strings.welcomeBack}!</Text>
-          <Text style={styles.heroLead} numberOfLines={2}>
-            {strings.readyMsg}
-          </Text>
-          <View style={styles.statsRow}>
-            <View style={styles.statPill}>
-              <Text style={styles.statText}>{strings.starsFmt(progress.stars)}</Text>
-            </View>
-            <View style={styles.statPill}>
-              <Text style={styles.statText}>{strings.puzzlesFmt(progress.puzzlesCompleted)}</Text>
-            </View>
-            <View style={styles.statPill}>
-              <Text style={styles.statText}>{strings.wordsFmt(learnedCount)}</Text>
-            </View>
-          </View>
-          <Pressable style={styles.heroCta} onPress={onPlay}>
-            <Text style={styles.heroCtaText}>{strings.playNow}</Text>
-          </Pressable>
+    <LinearGradient
+      colors={['#8a4ff0', '#6b2fd5']}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={[styles.screen, { paddingTop: insets.top + 20, paddingBottom: 130 + insets.bottom }]}
+    >
+      <View style={styles.hero}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.heroTitle}>Hello, Little Explorer!</Text>
+          <Text style={styles.heroSub}>Let's start your word adventure!</Text>
         </View>
-        <Text style={styles.heroMascot}>{group?.emoji ?? '🦉'}</Text>
-      </LinearGradient>
-
-      {/* Tiles */}
-      <View style={styles.tilesGrid}>
-        <Tile config={TILES.play!}      name={strings.playPuzzle}    sub={`${strings.level} ${progress.level}`} onPress={onPlay} />
-        <Tile
-          config={TILES.review!}
-          name={strings.wordReview}
-          sub={strings.learned(learnedCount)}
-          onPress={onReview}
-          disabled={learnedCount === 0}
-        />
-        <Tile config={TILES.alphabet!}  name={strings.alphabetTile}  sub="A · अ" onPress={onAlphabet} />
-        <Tile config={TILES.ticTacToe!} name={strings.ticTacToeName} sub={strings.ticTacToeSub} onPress={onTicTacToe} />
-        <Tile config={TILES.tour!}      name={strings.howToPlay}     sub={strings.quickTour} onPress={onOnboarding} />
-        <Tile config={TILES.age!}       name={strings.changeAge}     sub={group?.label ?? ''} onPress={onChangeAge} />
+        <PandaMascot size={80} />
       </View>
 
-      {/* Restart from Level 1 button (only when past level 1) */}
-      {progress.level > 1 && (
-        <Pressable style={styles.restart} onPress={onRestartLevel}>
-          <Text style={styles.restartText}>{strings.restartLevel}</Text>
-        </Pressable>
-      )}
-
-      {/* Badges */}
-      <View style={styles.badgesCard}>
-        <Text style={styles.badgesTitle}>Badges</Text>
-        <View style={styles.badgesRow}>
-          {rewardsData.badges.map((b) => {
-            const earned = earnedBadges.has(b.id);
+      <View style={[styles.mapCard, { width: mapWidth, height: mapHeight }]}>
+        <View style={StyleSheet.absoluteFill}>
+          <LevelMapScene width={mapWidth} height={mapHeight} />
+        </View>
+        <View style={StyleSheet.absoluteFill}>
+          {LEVEL_POSITIONS.map((pos, idx) => {
+            const level = idx + 1;
+            const unlocked = progress.level >= level;
+            const earned = Math.max(0, Math.min(3, progress.stars - (level - 1) * 3));
+            const tint = TILE_COLORS[pos.color];
+            const topPct = parseFloat(pos.top) / 100;
+            const leftPct = parseFloat(pos.left) / 100;
+            const tileW = 100;
+            const tileH = 88;
             return (
-              <View
-                key={b.id}
-                style={[styles.badge, earned && styles.badgeEarned]}
+              <Pressable
+                key={level}
+                onPress={unlocked ? () => onPlay(level) : undefined}
+                disabled={!unlocked}
+                style={({ pressed }) => [
+                  styles.tile,
+                  {
+                    top: topPct * mapHeight - tileH / 2,
+                    left: leftPct * mapWidth - tileW / 2,
+                    width: tileW,
+                    backgroundColor: tint.bg,
+                    borderColor: tint.dark
+                  },
+                  !unlocked && { opacity: 0.75 },
+                  pressed && { transform: [{ scale: 0.96 }] }
+                ]}
               >
-                <Text style={styles.badgeEmoji}>{b.emoji}</Text>
-                <Text
-                  style={[
-                    styles.badgeLabel,
-                    earned && styles.badgeLabelEarned
-                  ]}
-                  numberOfLines={1}
-                >
-                  {b.label}
-                </Text>
-              </View>
+                <View style={styles.tileIcon}>
+                  {unlocked ? <UnlockedIcon size={20} /> : <LockIcon size={20} />}
+                </View>
+                <Text style={styles.tileText}>Level {level}</Text>
+                <View style={styles.tileStars}>
+                  <LevelStar filled={earned >= 1} size={14} />
+                  <LevelStar filled={earned >= 2} size={14} />
+                  <LevelStar filled={earned >= 3} size={14} />
+                </View>
+              </Pressable>
             );
           })}
         </View>
       </View>
-    </ScrollView>
-  );
-}
 
-interface TileProps {
-  config: TileConfig;
-  name: string;
-  sub: string;
-  onPress: () => void;
-  disabled?: boolean;
-}
+      <View style={styles.shortcutRow}>
+        <Pressable style={[styles.shortcut, { backgroundColor: '#ffd23c' }]} onPress={onMiniGames}>
+          <Text style={styles.shortcutIcon}>🎮</Text>
+          <Text style={styles.shortcutText}>{strings.miniGamesTile}</Text>
+        </Pressable>
+        <Pressable style={[styles.shortcut, { backgroundColor: '#8ed2ff' }]} onPress={onReview}>
+          <Text style={styles.shortcutIcon}>📚</Text>
+          <Text style={styles.shortcutText}>{strings.learned(learnedCount)}</Text>
+        </Pressable>
+        <Pressable style={[styles.shortcut, { backgroundColor: '#ffb0d1' }]} onPress={onAlphabet}>
+          <Text style={styles.shortcutIcon}>🔤</Text>
+          <Text style={styles.shortcutText}>{strings.navLetters}</Text>
+        </Pressable>
+      </View>
 
-function Tile({ config, name, sub, onPress, disabled = false }: TileProps) {
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      style={{ flex: 1, flexBasis: '46%', minWidth: 140 }}
-    >
-      <LinearGradient
-        colors={config.tint}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.tile, disabled && styles.tileDisabled]}
-      >
-        <Text style={styles.tileIcon}>{config.icon}</Text>
-        <Text style={styles.tileName} numberOfLines={2}>{name}</Text>
-        <Text style={styles.tileSub} numberOfLines={1}>{sub}</Text>
-      </LinearGradient>
-    </Pressable>
+      {progress.level > 1 ? (
+        <Pressable style={styles.restartBtn} onPress={onRestartLevel}>
+          <Text style={styles.restartText}>{strings.restartLevel}</Text>
+        </Pressable>
+      ) : null}
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    paddingTop: 40,
-    paddingBottom: 120,
-    backgroundColor: '#fff7d6',
-    gap: 18
+  screen: {
+    flex: 1,
+    paddingHorizontal: 16,
+    gap: 14,
+    alignItems: 'center'
   },
   hero: {
-    borderRadius: 28,
-    padding: 22,
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    shadowColor: '#ff8fab',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.35,
-    shadowRadius: 20,
-    elevation: 6
+    paddingHorizontal: 6
   },
-  heroCopy: { flex: 1, gap: 6 },
-  heroTitle: { fontSize: 24, fontWeight: '800', color: '#fff' },
-  heroLead: { fontSize: 13, color: '#fff', opacity: 0.95, lineHeight: 18 },
-  statsRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginTop: 6 },
-  statPill: {
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    borderRadius: 999,
-    paddingVertical: 4,
-    paddingHorizontal: 10
+  heroTitle: {
+    fontSize: 26,
+    fontWeight: '900',
+    color: '#fff',
+    lineHeight: 30,
+    textShadowColor: 'rgba(30,15,110,0.35)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 0
   },
-  statText: { fontSize: 12, fontWeight: '800', color: '#2b2b3d' },
-  heroCta: {
-    marginTop: 10,
-    backgroundColor: '#fff',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 999,
-    alignSelf: 'flex-start'
+  heroSub: {
+    marginTop: 2,
+    fontSize: 13,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.92)'
   },
-  heroCtaText: { color: '#e26a89', fontWeight: '800', fontSize: 15 },
-  heroMascot: { fontSize: 68, lineHeight: 76 },
-  tilesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12
+  mapCard: {
+    borderRadius: radii.lg,
+    overflow: 'hidden',
+    borderWidth: 3,
+    borderColor: '#d8c7ff',
+    backgroundColor: '#b8f0ff',
+    ...shadow.card
   },
   tile: {
-    borderRadius: 24,
-    padding: 18,
-    alignItems: 'center',
-    gap: 6,
-    minHeight: 130,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 3
-  },
-  tileDisabled: { opacity: 0.5 },
-  tileIcon: { fontSize: 40, lineHeight: 44 },
-  tileName: { fontSize: 14, fontWeight: '800', color: '#2b2b3d', textAlign: 'center' },
-  tileSub: { fontSize: 12, color: '#55556d', fontWeight: '700', textAlign: 'center' },
-  restart: {
-    alignSelf: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: '#fff',
-    borderRadius: 999,
-    borderWidth: 2,
-    borderColor: '#e0e0e8'
-  },
-  restartText: { color: '#2b2b3d', fontWeight: '800', fontSize: 14 },
-  badgesCard: {
-    backgroundColor: '#fff',
+    position: 'absolute',
+    height: 88,
     borderRadius: 20,
-    padding: 14,
+    paddingVertical: 6,
+    paddingHorizontal: 6,
+    alignItems: 'center',
+    borderWidth: 3,
+    justifyContent: 'center',
+    ...shadow.card
+  },
+  tileIcon: { marginBottom: 2 },
+  tileText: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: '#fff',
+    textShadowColor: 'rgba(0,0,0,0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 0
+  },
+  tileStars: {
+    marginTop: 3,
+    flexDirection: 'row',
+    gap: 2
+  },
+  shortcutRow: {
+    width: '100%',
+    flexDirection: 'row',
     gap: 8
   },
-  badgesTitle: { fontSize: 15, fontWeight: '800', color: '#e26a89' },
-  badgesRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6
-  },
-  badge: {
-    flexDirection: 'row',
+  shortcut: {
+    flex: 1,
+    borderRadius: radii.md,
+    paddingVertical: 12,
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 12,
-    backgroundColor: '#fff8ee',
-    borderWidth: 2,
-    borderColor: 'rgba(0,0,0,0.05)'
+    gap: 3,
+    ...shadow.soft
   },
-  badgeEarned: {
-    backgroundColor: '#ffcf5c',
-    borderColor: '#f0b429'
+  shortcutIcon: { fontSize: 22 },
+  shortcutText: { fontSize: 12, fontWeight: '900', color: colors.ink, textAlign: 'center' },
+  restartBtn: {
+    alignSelf: 'center',
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderRadius: radii.pill,
+    paddingHorizontal: 18,
+    paddingVertical: 10
   },
-  badgeEmoji: { fontSize: 16 },
-  badgeLabel: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#55556d'
-  },
-  badgeLabelEarned: { color: '#2b2b3d' }
+  restartText: { fontSize: 13, fontWeight: '800', color: colors.ink }
 });

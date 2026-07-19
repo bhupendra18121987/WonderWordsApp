@@ -97,7 +97,7 @@ export default function BarahkhadiView({ language, onSpeak }: BarahkhadiViewProp
 
 const styles = StyleSheet.create({
   wrap: { gap: 12, alignItems: 'stretch' },
-  lead: { fontSize: 14, color: '#55556d', textAlign: 'center' },
+  lead: { fontSize: 14, color: '#6b7280', textAlign: 'center' },
   picker: {
     gap: 8,
     paddingHorizontal: 4,
@@ -109,21 +109,21 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 14,
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
     borderColor: 'transparent'
   },
   pickerBtnActive: {
-    backgroundColor: '#ff8fab',
+    backgroundColor: '#7c3aed',
     borderColor: '#ffcf5c',
     transform: [{ scale: 1.06 }]
   },
   pickerBtnText: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#2b2b3d'
+    color: '#1e1b4b'
   },
   pickerBtnTextActive: { color: '#fff' },
   selected: {
@@ -137,8 +137,8 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2
   },
-  selectedLetter: { fontSize: 56, fontWeight: '800', color: '#e26a89' },
-  selectedTrans: { fontSize: 13, fontWeight: '700', color: '#55556d' },
+  selectedLetter: { fontSize: 56, fontWeight: '800', color: '#6d28d9' },
+  selectedTrans: { fontSize: 13, fontWeight: '700', color: '#6b7280' },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -154,12 +154,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 2
   },
-  cellAkshara: { fontSize: 26, fontWeight: '800', color: '#2b2b3d' },
-  cellMatra: { fontSize: 12, fontWeight: '700', color: '#e26a89' },
+  cellAkshara: { fontSize: 26, fontWeight: '800', color: '#1e1b4b' },
+  cellMatra: { fontSize: 12, fontWeight: '700', color: '#6d28d9' },
   cellTrans: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#55556d',
+    color: '#6b7280',
     textTransform: 'lowercase'
   }
 });

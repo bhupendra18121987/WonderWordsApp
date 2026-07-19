@@ -70,19 +70,19 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 40,
     paddingBottom: 120,
-    backgroundColor: '#fff7d6',
+    backgroundColor: '#f3f0ff',
     gap: 12
   },
   title: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#e26a89',
+    color: '#6d28d9',
     textAlign: 'center'
   },
-  lead: { fontSize: 14, color: '#55556d', textAlign: 'center' },
+  lead: { fontSize: 14, color: '#6b7280', textAlign: 'center' },
   empty: { alignItems: 'center', gap: 12, marginTop: 40 },
   emptyEmoji: { fontSize: 64 },
-  emptyText: { fontSize: 16, color: '#55556d', textAlign: 'center' },
+  emptyText: { fontSize: 16, color: '#6b7280', textAlign: 'center' },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     flexBasis: '46%',
     minWidth: 140,
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     borderRadius: 20,
     padding: 14,
     alignItems: 'center',
@@ -105,16 +105,16 @@ const styles = StyleSheet.create({
     elevation: 3
   },
   emoji: { fontSize: 40 },
-  word: { fontSize: 16, fontWeight: '800', color: '#2b2b3d' },
+  word: { fontSize: 16, fontWeight: '800', color: '#1e1b4b' },
   meaning: {
     fontSize: 12,
-    color: '#55556d',
+    color: '#6b7280',
     textAlign: 'center',
     lineHeight: 16
   },
   back: {
     marginTop: 16,
-    backgroundColor: '#ff8fab',
+    backgroundColor: '#7c3aed',
     paddingVertical: 14,
     paddingHorizontal: 22,
     borderRadius: 999,

@@ -11,6 +11,7 @@ import Grid from './Grid';
 import WordList from './WordList';
 import WordReveal from './WordReveal';
 import Celebration from './Celebration';
+import { LinearGradient } from 'expo-linear-gradient';
 import { getAllWords, getWordsData } from '../core/data';
 import { buildPuzzleForLevel } from '../core/puzzleGenerator';
 import { splitGraphemes } from '../core/grapheme';
@@ -22,6 +23,7 @@ import {
   pickPraise,
   progressAfterPuzzle
 } from '../core/gameLogic';
+import { colors, radii, shadow } from '../core/theme';
 import type {
   AgeGroupKey,
   Cell,
@@ -267,20 +269,27 @@ export default function WordSearchGame({
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.pill}>
-          <Text style={styles.pillText}>🧩 {strings.level} {activeLevel}</Text>
+      <LinearGradient
+        colors={[colors.primaryLight, colors.primary]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.hero}
+      >
+        <View style={styles.header}>
+          <View style={styles.pill}>
+            <Text style={styles.pillText}>🧩 {strings.level} {activeLevel}</Text>
+          </View>
+          <View style={styles.pill}>
+            <Text style={styles.pillText}>
+              {foundWords.length}/{puzzle.items.length} {strings.found}
+            </Text>
+          </View>
         </View>
-        <View style={styles.pill}>
-          <Text style={styles.pillText}>
-            {foundWords.length}/{puzzle.items.length} {strings.found}
-          </Text>
-        </View>
-      </View>
 
-      <View style={styles.progressBar}>
-        <View style={[styles.progressFill, { width: `${progressPct}%` }]} />
-      </View>
+        <View style={styles.progressBar}>
+          <View style={[styles.progressFill, { width: `${progressPct}%` }]} />
+        </View>
+      </LinearGradient>
 
       <View style={{ alignItems: 'center', marginTop: 12 }}>
         <Grid
@@ -322,8 +331,10 @@ export default function WordSearchGame({
       <Celebration
         visible={!!completion}
         praise={completion?.praise ?? ''}
+        wordsFound={completion?.wordsFound}
         stars={completion?.stars ?? 3}
         nextLabel={strings.nextPuzzle}
+        homeLabel={strings.home}
         onNext={() => { setCompletion(null); nextLevel(); }}
         onHome={() => { setCompletion(null); onExit(); }}
       />
@@ -334,57 +345,63 @@ export default function WordSearchGame({
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    paddingTop: 40,
-    paddingBottom: 40,
-    backgroundColor: '#fff7d6',
+    paddingTop: 84,
+    paddingBottom: 120,
+    backgroundColor: colors.bg,
     gap: 12
+  },
+  hero: {
+    borderRadius: radii.lg,
+    padding: 12,
+    gap: 10,
+    ...shadow.card
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
+    gap: 8
   },
   pill: {
-    backgroundColor: '#fff',
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.96)',
     borderRadius: 999,
-    paddingVertical: 6,
+    paddingVertical: 8,
     paddingHorizontal: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 2
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.55)'
   },
   pillText: {
-    fontSize: 13,
+    fontSize: 12,
+    textAlign: 'center',
     fontWeight: '800',
-    color: '#2b2b3d'
+    color: colors.ink
   },
   progressBar: {
-    height: 12,
-    backgroundColor: 'rgba(0,0,0,0.08)',
+    height: 14,
+    backgroundColor: 'rgba(255,255,255,0.32)',
     borderRadius: 999,
-    overflow: 'hidden'
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.34)'
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#58c896',
+    backgroundColor: colors.accent,
     borderRadius: 999
   },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 22,
+    backgroundColor: colors.paper,
+    borderRadius: radii.md,
     padding: 14,
     gap: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 3
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadow.soft
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#e26a89'
+    color: colors.primaryDark
   },
   actionsRow: {
     flexDirection: 'row',
@@ -399,21 +416,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   actionAccent: {
-    backgroundColor: '#ffcf5c'
+    backgroundColor: colors.accent
   },
   actionText: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#2b2b3d'
+    color: colors.onAccent
   },
   actionGhost: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.paper,
     borderWidth: 2,
-    borderColor: '#e0e0e8'
+    borderColor: colors.border
   },
   actionGhostText: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#2b2b3d'
+    color: colors.ink
   }
 });

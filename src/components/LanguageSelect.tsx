@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 24,
     paddingTop: 60,
-    backgroundColor: '#fff7d6',
+    backgroundColor: '#f3f0ff',
     alignItems: 'center',
     gap: 16
   },
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     gap: 10,
     padding: 8,
     paddingHorizontal: 16,
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     borderRadius: 999,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -96,20 +96,20 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: '#e0e0e8'
+    backgroundColor: '#e5e5f0'
   },
   dotDone: { backgroundColor: '#58c896' },
-  dotActive: { backgroundColor: '#ff8fab', transform: [{ scale: 1.35 }] },
+  dotActive: { backgroundColor: '#7c3aed', transform: [{ scale: 1.35 }] },
   title: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#e26a89',
+    color: '#6d28d9',
     marginTop: 8
   },
   titleHi: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#e26a89',
+    color: '#6d28d9',
     marginTop: -6
   },
   grid: {
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   card: {
     width: 150,
     minHeight: 200,
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     borderRadius: 28,
     padding: 20,
     alignItems: 'center',
@@ -141,16 +141,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff8e1'
   },
   flag: { fontSize: 56 },
-  name: { fontSize: 22, fontWeight: '800', color: '#e26a89' },
+  name: { fontSize: 22, fontWeight: '800', color: '#6d28d9' },
   sample: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#55556d',
+    color: '#6b7280',
     letterSpacing: 3
   },
   nextBtn: {
     marginTop: 20,
-    backgroundColor: '#ff8fab',
+    backgroundColor: '#7c3aed',
     paddingVertical: 18,
     paddingHorizontal: 36,
     borderRadius: 999

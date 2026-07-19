@@ -1,58 +1,56 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { t } from '../core/i18n';
+import { colors, radii, shadow } from '../core/theme';
 import type { Language } from '../core/types';
 
-export type NavScreen = 'home' | 'game' | 'review' | 'alphabet';
+export type NavScreen = 'home' | 'levels' | 'rewards' | 'profile';
 
 interface BottomNavProps {
   active: NavScreen | null;
   language: Language;
-  learnedCount: number;
   onNavigate: (screen: NavScreen) => void;
-  onOpenSettings: () => void;
+  /** Settings gear opens the modal. Kept out of the tab bar for parity with the reference (gear lives in the TopBar). */
+  onOpenSettings?: () => void;
 }
 
 /**
- * Fixed bottom nav bar. Positioned absolutely at the bottom of the App
- * shell so it's always thumb-reachable.
+ * Reference-style bottom nav: white bar with a pill-shaped highlight on
+ * the active tab. Four tabs: Home / Levels / Rewards / Profile.
+ * A separate hidden control opens Settings from the TopBar gear.
  */
-export default function BottomNav({
-  active,
-  language,
-  learnedCount,
-  onNavigate,
-  onOpenSettings
-}: BottomNavProps) {
+export default function BottomNav({ active, language, onNavigate }: BottomNavProps) {
   const strings = t(language);
+  const insets = useSafeAreaInsets();
 
-  const items = [
-    { key: 'home' as const,     icon: '🏠', label: strings.navHome,     disabled: false,               onPress: () => onNavigate('home') },
-    { key: 'game' as const,     icon: '🧩', label: strings.navPlay,     disabled: false,               onPress: () => onNavigate('game') },
-    { key: 'review' as const,   icon: '📖', label: strings.navWords,    disabled: learnedCount === 0,  onPress: () => onNavigate('review') },
-    { key: 'alphabet' as const, icon: '🔤', label: strings.navLetters,  disabled: false,               onPress: () => onNavigate('alphabet') },
-    { key: 'settings' as const, icon: '⚙️', label: strings.navSettings, disabled: false,               onPress: onOpenSettings }
+  const items: { key: NavScreen; icon: string; label: string }[] = [
+    { key: 'home',    icon: '🏠', label: strings.navHome    },
+    { key: 'levels',  icon: '🗺️', label: strings.navLevels  },
+    { key: 'rewards', icon: '🏆', label: strings.navRewards },
+    { key: 'profile', icon: '👤', label: strings.navProfile }
   ];
 
   return (
-    <View style={styles.nav}>
+    <View style={[styles.nav, { paddingBottom: Math.max(10, insets.bottom + 6) }]}>
       {items.map((item) => {
         const isActive = active === item.key;
         return (
           <Pressable
             key={item.key}
-            style={[styles.item, isActive && styles.itemActive]}
-            onPress={item.onPress}
-            disabled={item.disabled}
+            style={({ pressed }) => [
+              styles.item,
+              isActive && styles.itemActive,
+              pressed && styles.itemPressed
+            ]}
+            onPress={() => onNavigate(item.key)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: isActive }}
           >
-            <Text style={[styles.icon, item.disabled && styles.iconDisabled]}>
+            <Text style={[styles.icon, isActive && styles.iconActive]}>
               {item.icon}
             </Text>
             <Text
-              style={[
-                styles.label,
-                isActive && styles.labelActive,
-                item.disabled && styles.labelDisabled
-              ]}
+              style={[styles.label, isActive && styles.labelActive]}
               numberOfLines={1}
             >
               {item.label}
@@ -67,22 +65,19 @@ export default function BottomNav({
 const styles = StyleSheet.create({
   nav: {
     position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
+    left: 12,
+    right: 12,
+    bottom: 10,
     zIndex: 25,
     flexDirection: 'row',
     gap: 4,
-    padding: 8,
-    paddingBottom: 12,
-    backgroundColor: 'rgba(255,255,255,0.98)',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(60,40,90,0.05)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -6 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 8
+    paddingTop: 10,
+    paddingHorizontal: 8,
+    backgroundColor: colors.paper,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadow.card
   },
   item: {
     flex: 1,
@@ -91,22 +86,24 @@ const styles = StyleSheet.create({
     gap: 2,
     paddingVertical: 8,
     paddingHorizontal: 4,
-    borderRadius: 18,
+    borderRadius: radii.md,
     backgroundColor: 'transparent'
   },
   itemActive: {
-    backgroundColor: '#fff2f6'
+    backgroundColor: colors.primarySoft
   },
-  icon: {
-    fontSize: 24,
-    lineHeight: 28
+  itemPressed: {
+    transform: [{ scale: 0.94 }],
+    opacity: 0.85
   },
-  iconDisabled: { opacity: 0.35 },
+  icon: { fontSize: 22, lineHeight: 26 },
+  iconActive: { transform: [{ scale: 1.15 }] },
   label: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#55556d'
+    color: colors.inkSoft
   },
-  labelActive: { color: '#e26a89' },
-  labelDisabled: { opacity: 0.35 }
+  labelActive: {
+    color: colors.primary
+  }
 });

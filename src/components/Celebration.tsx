@@ -10,27 +10,33 @@ import {
   useWindowDimensions
 } from 'react-native';
 import ConfettiCannon from 'react-native-confetti-cannon';
+import PandaIllustration from './PandaIllustration';
+import { colors, radii, shadow } from '../core/theme';
 
 interface CelebrationProps {
   visible: boolean;
   praise: string;
+  wordsFound?: number;
   subtitle?: string;
   stars?: number;
   showStars?: boolean;
   nextLabel?: string;
+  homeLabel?: string;
   onNext: () => void;
   onHome: () => void;
 }
 
-const PARTY_COLORS = ['#ff8fab', '#ffcf5c', '#58c896', '#6ec9ff', '#d19cff', '#ff9f43', '#ffffff'];
+const PARTY_COLORS = ['#7c3aed', '#ffcf5c', '#58c896', '#6ec9ff', '#d19cff', '#ff9f43', '#ffffff'];
 
 export default function Celebration({
   visible,
   praise,
+  wordsFound,
   subtitle,
   stars = 3,
   showStars = true,
   nextLabel = 'Next puzzle →',
+  homeLabel = '🏠 Home',
   onNext,
   onHome
 }: CelebrationProps) {
@@ -47,6 +53,10 @@ export default function Celebration({
       ])
     ).start();
   }, [visible, trophyBounce]);
+
+  const summary = subtitle ?? (typeof wordsFound === 'number'
+    ? `${wordsFound} ${wordsFound === 1 ? 'word' : 'words'} found!`
+    : undefined);
 
   if (!visible) return null;
 
@@ -72,9 +82,9 @@ export default function Celebration({
         />
 
         <View style={styles.modal}>
-          <Animated.Text
+          <Animated.View
             style={[
-              styles.trophy,
+              styles.hero,
               {
                 transform: [
                   { scale: trophyBounce.interpolate({ inputRange: [0, 1], outputRange: [1, 1.15] }) },
@@ -83,10 +93,10 @@ export default function Celebration({
               }
             ]}
           >
-            🏆
-          </Animated.Text>
+            <PandaIllustration size={108} />
+          </Animated.View>
           <Text style={styles.praise}>{praise}</Text>
-          {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+          {summary && <Text style={styles.subtitle}>{summary}</Text>}
 
           {showStars && (
             <View style={styles.starsRow}>
@@ -105,11 +115,17 @@ export default function Celebration({
           )}
 
           <View style={styles.buttons}>
-            <Pressable style={[styles.btn, styles.btnPrimary]} onPress={onNext}>
+            <Pressable
+              style={({ pressed }) => [styles.btn, styles.btnPrimary, pressed && styles.btnPressed]}
+              onPress={onNext}
+            >
               <Text style={styles.btnPrimaryText}>{nextLabel}</Text>
             </Pressable>
-            <Pressable style={[styles.btn, styles.btnGhost]} onPress={onHome}>
-              <Text style={styles.btnGhostText}>Home</Text>
+            <Pressable
+              style={({ pressed }) => [styles.btn, styles.btnGhost, pressed && styles.btnPressed]}
+              onPress={onHome}
+            >
+              <Text style={styles.btnGhostText}>{homeLabel}</Text>
             </Pressable>
           </View>
         </View>
@@ -121,37 +137,34 @@ export default function Celebration({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(30,20,55,0.6)',
+    backgroundColor: 'rgba(30,20,55,0.68)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20
   },
   modal: {
-    backgroundColor: '#fff',
-    borderRadius: 30,
-    padding: 30,
+    backgroundColor: '#fffaf0',
+    borderRadius: radii.lg,
+    padding: 26,
     alignItems: 'center',
     gap: 14,
     maxWidth: 460,
     width: '100%',
     borderWidth: 4,
-    borderColor: '#ffcf5c',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 20 },
-    shadowOpacity: 0.4,
-    shadowRadius: 30,
-    elevation: 10
+    borderColor: colors.accent,
+    ...shadow.card
   },
-  trophy: { fontSize: 88, lineHeight: 100 },
+  hero: { marginTop: -8 },
   praise: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#e26a89',
+    color: colors.primaryDark,
     textAlign: 'center'
   },
   subtitle: {
-    fontSize: 16,
-    color: '#55556d',
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.inkSoft,
     textAlign: 'center'
   },
   starsRow: {
@@ -177,8 +190,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   },
-  btnPrimary: { backgroundColor: '#ff8fab' },
+  btnPrimary: { backgroundColor: '#7c3aed' },
   btnPrimaryText: { color: '#fff', fontWeight: '800', fontSize: 17 },
-  btnGhost: { backgroundColor: '#fff', borderWidth: 2, borderColor: '#e0e0e8' },
-  btnGhostText: { color: '#2b2b3d', fontWeight: '800', fontSize: 15 }
+  btnGhost: { backgroundColor: '#ffffff', borderWidth: 2, borderColor: colors.border },
+  btnGhostText: { color: colors.ink, fontWeight: '800', fontSize: 15 },
+  btnPressed: { transform: [{ scale: 0.96 }], opacity: 0.92 }
 });

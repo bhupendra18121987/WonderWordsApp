@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     padding: 20
   },
   modal: {
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     borderRadius: 28,
     padding: 26,
     alignItems: 'center',
@@ -103,10 +103,10 @@ const styles = StyleSheet.create({
     width: '100%'
   },
   emoji: { fontSize: 76, lineHeight: 88 },
-  title: { fontSize: 24, fontWeight: '800', color: '#e26a89', textAlign: 'center' },
+  title: { fontSize: 24, fontWeight: '800', color: '#6d28d9', textAlign: 'center' },
   text: {
     fontSize: 15,
-    color: '#55556d',
+    color: '#6b7280',
     textAlign: 'center',
     lineHeight: 22
   },
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.15)'
   },
   dotActive: {
-    backgroundColor: '#ff8fab'
+    backgroundColor: '#7c3aed'
   },
   buttons: {
     flexDirection: 'row',
@@ -137,8 +137,8 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     minHeight: 44
   },
-  btnPrimary: { backgroundColor: '#ff8fab' },
+  btnPrimary: { backgroundColor: '#7c3aed' },
   btnPrimaryText: { color: '#fff', fontWeight: '800', fontSize: 15 },
-  btnGhost: { backgroundColor: '#fff', borderWidth: 2, borderColor: '#e0e0e8' },
-  btnGhostText: { color: '#2b2b3d', fontWeight: '800', fontSize: 14 }
+  btnGhost: { backgroundColor: '#ffffff', borderWidth: 2, borderColor: '#e5e5f0' },
+  btnGhostText: { color: '#1e1b4b', fontWeight: '800', fontSize: 14 }
 });

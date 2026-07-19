@@ -1,18 +1,18 @@
-import { useEffect, useRef } from 'react';
-import {
-  Animated,
-  Easing,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View
-} from 'react-native';
-import AnimatedScene from './AnimatedScene';
-import { letterBreakdown } from '../core/letters';
-import { getScene } from '../core/scenes';
+import { useEffect } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Modal, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import * as Speech from 'expo-speech';
 import { t } from '../core/i18n';
+import { getLanguageConfig } from '../core/languages';
+import { colors, radii } from '../core/theme';
 import type { Language } from '../core/types';
+import {
+  CatCharacter,
+  GreatJobBanner,
+  GreatJobStarCluster,
+  SpeakerIcon
+} from './RevealAssets';
+import { ConfettiBits } from './CelebrationAssets';
 
 interface RevealItem {
   word: string;
@@ -27,47 +27,79 @@ interface WordRevealProps {
   onClose: () => void;
 }
 
+function characterFor(word: string, emoji: string) {
+  const w = word.trim().toLowerCase();
+  if (w === 'cat') return <CatCharacter size={160} />;
+  return (
+    <View style={styles.emojiFrame}>
+      <Text style={styles.emojiText}>{emoji}</Text>
+    </View>
+  );
+}
+
+/** Purple full-screen "Great Job!" reveal shown after finding a word. */
 export default function WordReveal({ word, language = 'en', onClose }: WordRevealProps) {
+  const { width, height } = useWindowDimensions();
   const strings = t(language);
-  const bounce = useRef(new Animated.Value(0)).current;
+  const langCfg = getLanguageConfig(language);
 
   useEffect(() => {
     if (!word) return;
-    bounce.setValue(0);
-    Animated.timing(bounce, {
-      toValue: 1,
-      duration: 500,
-      easing: Easing.out(Easing.back(1.5)),
-      useNativeDriver: true
-    }).start();
-  }, [word, bounce]);
+    Speech.speak(word.word, { language: langCfg.bcp47, rate: 0.9, pitch: 1.15 });
+  }, [word, langCfg.bcp47]);
 
   if (!word) return null;
-  const scene = getScene({ word: word.word, category: word.category });
+
+  const praise = language === 'hi' ? 'शाबाश!' : 'Great Job!';
+  const nextLabel = language === 'hi' ? 'अगला शब्द' : 'Next Word';
+  const speak = () => Speech.speak(word.word, { language: langCfg.bcp47, rate: 0.9, pitch: 1.15 });
 
   return (
-    <Modal transparent animationType="fade" visible onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <Animated.View
-          style={[
-            styles.modal,
-            {
-              transform: [
-                { scale: bounce.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }
-              ],
-              opacity: bounce
-            }
-          ]}
-        >
-          <AnimatedScene emoji={word.emoji} scene={scene} />
-          <Text style={styles.word}>{word.word}</Text>
-          <Text style={styles.breakdown}>{letterBreakdown(word.word, language)}</Text>
+    <Modal transparent visible animationType="fade" onRequestClose={onClose}>
+      <LinearGradient
+        colors={['#8a4ff0', '#6b2fd5']}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={styles.overlay}
+      >
+        <View style={StyleSheet.absoluteFill} pointerEvents="none">
+          <ConfettiBits width={width} height={height} />
+        </View>
+
+        <View style={styles.hero}>
+          <GreatJobStarCluster width={220} height={90} />
+          <View style={styles.bannerWrap}>
+            <GreatJobBanner width={Math.min(340, width - 40)}>{praise}</GreatJobBanner>
+          </View>
+        </View>
+
+        <View style={styles.card}>
+          <View style={styles.headerRow}>
+            <Text style={styles.word}>{word.word.toUpperCase()}</Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Speak ${word.word}`}
+              onPress={speak}
+              style={({ pressed }) => [styles.speakerBtn, pressed && styles.pressed]}
+            >
+              <SpeakerIcon size={20} />
+            </Pressable>
+          </View>
+
+          <View style={styles.character}>{characterFor(word.word, word.emoji)}</View>
+
           <Text style={styles.meaning}>{word.meaning}</Text>
-          <Pressable style={styles.btn} onPress={onClose}>
-            <Text style={styles.btnText}>{strings.keepPlaying}</Text>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={strings.keepPlaying}
+            onPress={onClose}
+            style={({ pressed }) => [styles.nextBtn, pressed && styles.nextBtnPressed]}
+          >
+            <Text style={styles.nextBtnText}>{nextLabel}</Text>
           </Pressable>
-        </Animated.View>
-      </View>
+        </View>
+      </LinearGradient>
     </Modal>
   );
 }
@@ -75,39 +107,74 @@ export default function WordReveal({ word, language = 'en', onClose }: WordRevea
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(30,20,55,0.55)',
-    justifyContent: 'center',
+    paddingHorizontal: 18,
+    paddingVertical: 24,
     alignItems: 'center',
-    padding: 20
+    justifyContent: 'flex-start'
   },
-  modal: {
-    backgroundColor: '#fff',
-    borderRadius: 28,
-    padding: 22,
-    alignItems: 'center',
-    gap: 12,
-    maxWidth: 480,
+  hero: { alignItems: 'center', marginTop: 40, zIndex: 3 },
+  bannerWrap: { marginTop: -8 },
+  card: {
+    marginTop: 12,
     width: '100%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
+    maxWidth: 380,
+    backgroundColor: '#fff',
+    borderRadius: 26,
+    padding: 22,
+    paddingTop: 30,
+    alignItems: 'center',
+    shadowColor: '#1e1b4b',
+    shadowOffset: { width: 0, height: 20 },
     shadowOpacity: 0.35,
-    shadowRadius: 20,
-    elevation: 8
+    shadowRadius: 30,
+    elevation: 10
   },
-  word: { fontSize: 30, fontWeight: '800', color: '#e26a89' },
-  breakdown: { fontSize: 13, color: '#55556d', fontWeight: '700' },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    position: 'relative',
+    minHeight: 40
+  },
+  word: { color: '#2ea44f', fontSize: 30, fontWeight: '900', letterSpacing: 2 },
+  speakerBtn: {
+    position: 'absolute',
+    right: 0,
+    width: 42,
+    height: 42,
+    borderRadius: radii.pill,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  pressed: { opacity: 0.85, transform: [{ scale: 0.94 }] },
+  character: { marginVertical: 8 },
+  emojiFrame: {
+    width: 160,
+    height: 160,
+    borderRadius: radii.pill,
+    backgroundColor: '#fff5db',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  emojiText: { fontSize: 84 },
   meaning: {
-    fontSize: 16,
-    color: '#55556d',
+    color: colors.ink,
+    fontSize: 15,
+    fontWeight: '700',
     textAlign: 'center',
-    lineHeight: 22
+    marginVertical: 10,
+    lineHeight: 21
   },
-  btn: {
+  nextBtn: {
+    alignSelf: 'stretch',
     marginTop: 8,
-    backgroundColor: '#ff8fab',
     paddingVertical: 14,
-    paddingHorizontal: 28,
-    borderRadius: 999
+    borderRadius: radii.pill,
+    backgroundColor: '#3ea41f',
+    alignItems: 'center'
   },
-  btnText: { color: '#fff', fontWeight: '800', fontSize: 16 }
+  nextBtnPressed: { transform: [{ translateY: 2 }] },
+  nextBtnText: { color: '#fff', fontWeight: '900', fontSize: 17 }
 });

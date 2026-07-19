@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // Screens & components
 import SplashScreen from './src/components/SplashScreen';
@@ -11,11 +12,21 @@ import WordSearchGame from './src/components/WordSearchGame';
 import WordReview from './src/components/WordReview';
 import AlphabetScreen from './src/components/AlphabetScreen';
 import TicTacToeGame from './src/components/TicTacToeGame';
+import MiniGamesHub, { type MiniGameId } from './src/components/MiniGamesHub';
+import LetterHuntGame from './src/components/LetterHuntGame';
+import TapColorGame from './src/components/TapColorGame';
+import MissingLetterGame from './src/components/MissingLetterGame';
+import AntonymPairsGame from './src/components/AntonymPairsGame';
+import AlphabetKaraoke from './src/components/AlphabetKaraoke';
+import TwoPlayerGame from './src/components/TwoPlayerGame';
+import TraceLetterGame from './src/components/TraceLetterGame';
 import Onboarding from './src/components/Onboarding';
 import SettingsPanel from './src/components/SettingsPanel';
 import ConfirmDialog from './src/components/ConfirmDialog';
 import BottomNav, { type NavScreen } from './src/components/BottomNav';
-import Mascot from './src/components/Mascot';
+import TopBar from './src/components/TopBar';
+import RewardsScreen from './src/components/RewardsScreen';
+import ProfileScreen from './src/components/ProfileScreen';
 
 // Hooks
 import useLocalStorage from './src/hooks/useLocalStorage';
@@ -50,9 +61,27 @@ type Screen =
   | 'game'
   | 'review'
   | 'alphabet'
-  | 'tictactoe';
+  | 'tictactoe'
+  | 'miniGames'
+  | 'letterHunt'
+  | 'tapColor'
+  | 'missingLetter'
+  | 'antonymPairs'
+  | 'karaoke'
+  | 'twoPlayer'
+  | 'trace'
+  | 'rewards'
+  | 'profile';
 
 export default function App() {
+  return (
+    <SafeAreaProvider>
+      <AppInner />
+    </SafeAreaProvider>
+  );
+}
+
+function AppInner() {
   // ─────────── Persistent state ───────────
   const [rawSettings, setRawSettings, , settingsLoaded] =
     useLocalStorage<Partial<Settings>>(STORAGE_KEYS.settings, DEFAULT_SETTINGS);
@@ -80,6 +109,11 @@ export default function App() {
     useLocalStorage<boolean>(STORAGE_KEYS.setupComplete, false);
   const [seenOnboarding, setSeenOnboarding] =
     useLocalStorage<boolean>(STORAGE_KEYS.seenOnboarding, false);
+  // Remember which mini-game the child last opened so we can highlight
+  // it in the hub — kids form spatial memory quickly and love picking
+  // up where they left off.
+  const [lastMiniGame, setLastMiniGame] =
+    useLocalStorage<MiniGameId | null>('ww:lastMiniGame', null);
 
   const persistenceLoaded = settingsLoaded && ageGroupLoaded && setupLoaded;
 
@@ -178,7 +212,9 @@ export default function App() {
     setScreen('home');
   };
 
-  const handlePlay = () => {
+  const [selectedLevel, setSelectedLevel] = useState<number | undefined>(undefined);
+  const handlePlay = (level?: number) => {
+    setSelectedLevel(level);
     setScreen('game');
     setMascotMessage(strings.letsFind);
   };
@@ -194,9 +230,9 @@ export default function App() {
   }> = {
     resetAll: {
       emoji: '🧹',
-      title: 'Start completely fresh?',
-      message: 'This will erase your stars, badges, learned words — everything.',
-      confirmLabel: 'Yes, reset all',
+      title: strings.resetAllTitle,
+      message: strings.resetAllMessage,
+      confirmLabel: strings.resetAllConfirm,
       tone: 'danger',
       run: () => {
         resetProgress();
@@ -209,9 +245,9 @@ export default function App() {
     },
     resetScores: {
       emoji: '⭐',
-      title: 'Reset your scores?',
-      message: 'Your stars and level will go back to 0. Learned words and badges stay safe!',
-      confirmLabel: 'Yes, reset scores',
+      title: strings.resetScoresTitle,
+      message: strings.resetScoresMessage,
+      confirmLabel: strings.resetScoresConfirm,
       tone: 'primary',
       run: () => {
         setProgress((p) => resetScoresOnly(p));
@@ -220,9 +256,9 @@ export default function App() {
     },
     restartLevel: {
       emoji: '🔄',
-      title: 'Start again from Level 1?',
-      message: 'Stars, badges and learned words will stay — only the level goes back to 1.',
-      confirmLabel: 'Yes, restart',
+      title: strings.restartLevelTitle,
+      message: strings.restartLevelMessage,
+      confirmLabel: strings.restartLevelConfirm,
       tone: 'primary',
       run: () => setProgress((p) => restartAtLevelOne(p))
     }
@@ -234,12 +270,12 @@ export default function App() {
     (screen === 'languageSelect' && !setupComplete) ||
     (screen === 'ageSelect' && !setupComplete);
 
-  // Map current screen to BottomNav active tab
+  // Map current screen to BottomNav active tab (only 4 primary tabs).
   const navActive: NavScreen | null =
-    screen === 'game' ? 'game' :
-    screen === 'review' ? 'review' :
-    screen === 'alphabet' ? 'alphabet' :
     screen === 'home' ? 'home' :
+    screen === 'miniGames' || screen === 'game' || screen === 'alphabet' ? 'levels' :
+    screen === 'rewards' ? 'rewards' :
+    screen === 'profile' ? 'profile' :
     null;
 
   // ─────────── Render ───────────
@@ -278,9 +314,7 @@ export default function App() {
           onPlay={handlePlay}
           onReview={() => setScreen('review')}
           onAlphabet={() => setScreen('alphabet')}
-          onTicTacToe={() => setScreen('tictactoe')}
-          onOnboarding={() => setShowOnboarding(true)}
-          onChangeAge={() => setScreen('ageSelect')}
+          onMiniGames={() => setScreen('miniGames')}
           onRestartLevel={() => setConfirmAction('restartLevel')}
         />
       )}
@@ -330,6 +364,114 @@ export default function App() {
         />
       )}
 
+      {screen === 'miniGames' && (
+        <MiniGamesHub
+          language={settings.language}
+          lastPlayed={lastMiniGame}
+          enabled={{
+            letterHunt: true,
+            tapColor: true,
+            missingLetter: true,
+            antonymPairs: true,
+            karaoke: true,
+            twoPlayer: true,
+            trace: true
+          }}
+          onBack={() => setScreen('home')}
+          onPick={(id: MiniGameId) => {
+            setLastMiniGame(id);
+            if (id === 'letterHunt') setScreen('letterHunt');
+            else if (id === 'tapColor') setScreen('tapColor');
+            else if (id === 'missingLetter') setScreen('missingLetter');
+            else if (id === 'antonymPairs') setScreen('antonymPairs');
+            else if (id === 'karaoke') setScreen('karaoke');
+            else if (id === 'twoPlayer') setScreen('twoPlayer');
+            else if (id === 'trace') setScreen('trace');
+          }}
+        />
+      )}
+
+      {screen === 'letterHunt' && ageGroup && (
+        <LetterHuntGame
+          ageGroup={ageGroup}
+          language={settings.language}
+          onExit={() => setScreen('miniGames')}
+          speakText={speakText}
+        />
+      )}
+
+      {screen === 'tapColor' && ageGroup && (
+        <TapColorGame
+          ageGroup={ageGroup}
+          language={settings.language}
+          onExit={() => setScreen('miniGames')}
+          speakText={speakText}
+        />
+      )}
+
+      {screen === 'missingLetter' && ageGroup && (
+        <MissingLetterGame
+          ageGroup={ageGroup}
+          language={settings.language}
+          onExit={() => setScreen('miniGames')}
+          speakText={speakText}
+        />
+      )}
+
+      {screen === 'antonymPairs' && ageGroup && (
+        <AntonymPairsGame
+          ageGroup={ageGroup}
+          language={settings.language}
+          onExit={() => setScreen('miniGames')}
+          speakText={speakText}
+        />
+      )}
+
+      {screen === 'karaoke' && (
+        <AlphabetKaraoke
+          language={settings.language}
+          onExit={() => setScreen('miniGames')}
+          speakText={speakText}
+        />
+      )}
+
+      {screen === 'twoPlayer' && ageGroup && (
+        <TwoPlayerGame
+          ageGroup={ageGroup}
+          language={settings.language}
+          onExit={() => setScreen('miniGames')}
+          speakLetter={speakLetter}
+          speakText={speakText}
+        />
+      )}
+
+      {screen === 'trace' && ageGroup && (
+        <TraceLetterGame
+          ageGroup={ageGroup}
+          language={settings.language}
+          onExit={() => setScreen('miniGames')}
+          speakText={speakText}
+        />
+      )}
+
+      {screen === 'rewards' && (
+        <RewardsScreen
+          language={settings.language}
+          progress={progress}
+          onBack={() => setScreen('home')}
+        />
+      )}
+
+      {screen === 'profile' && (
+        <ProfileScreen
+          ageGroup={ageGroup}
+          language={settings.language}
+          progress={progress}
+          onBack={() => setScreen('home')}
+          onChangeAge={() => setScreen('ageSelect')}
+        />
+      )}
+
       {/* Modals */}
       <Onboarding
         visible={showOnboarding}
@@ -356,6 +498,7 @@ export default function App() {
           title={confirmActionConfig[confirmAction].title}
           message={confirmActionConfig[confirmAction].message}
           confirmLabel={confirmActionConfig[confirmAction].confirmLabel}
+          cancelLabel={strings.confirmCancel}
           tone={confirmActionConfig[confirmAction].tone}
           onConfirm={() => {
             confirmActionConfig[confirmAction].run();
@@ -366,17 +509,23 @@ export default function App() {
       )}
 
       {/* Chrome (only after wizard) */}
-      {!isImmersive && <Mascot face="🦉" message={mascotMessage} />}
+      {!isImmersive && (
+        <TopBar
+          stars={progress.stars}
+          onStarsPress={() => setScreen('rewards')}
+          onOpenSettings={() => setShowSettings(true)}
+        />
+      )}
       {ageGroup && !isImmersive && screen !== 'ageSelect' && navActive && (
         <BottomNav
           active={navActive}
           language={settings.language}
-          learnedCount={progress.learnedWords.length}
           onNavigate={(target) => {
-            if (target === 'game') handlePlay();
-            else setScreen(target);
+            if (target === 'home') setScreen('home');
+            else if (target === 'levels') setScreen('miniGames');
+            else if (target === 'rewards') setScreen('rewards');
+            else if (target === 'profile') setScreen('profile');
           }}
-          onOpenSettings={() => setShowSettings(true)}
         />
       )}
     </View>
@@ -386,6 +535,6 @@ export default function App() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#fff7d6'
+    backgroundColor: '#f3f0ff'
   }
 });

@@ -25,5 +25,15 @@ export const STORAGE_KEYS = {
   progress: 'ww:progress',
   seenOnboarding: 'ww:seenOnboarding',
   /** True once the user has completed the splash → language → age wizard. */
-  setupComplete: 'ww:setupComplete'
+  setupComplete: 'ww:setupComplete',
+  profileName: 'ww:profileName',
+  profileAvatar: 'ww:profileAvatar'
 } as const;
+
+export const DEFAULT_PROFILE_NAME = 'Little Explorer';
+export const DEFAULT_PROFILE_AVATAR = '🦁';
+export const PROFILE_AVATAR_OPTIONS = [
+  '🦁', '🐼', '🐰', '🐻', '🐱', '🐶',
+  '🦊', '🐨', '🐯', '🐵', '🐷', '🐸',
+  '🦄', '🐧', '🐥', '🐢'
+] as const;

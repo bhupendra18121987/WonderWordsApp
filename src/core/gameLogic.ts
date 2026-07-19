@@ -25,6 +25,15 @@ export function computeStars(mistakes: number, hintsUsed: number): 1 | 2 | 3 {
   return 3;
 }
 
+/** Star rating from a mini-game score/total. */
+export function starsFromScore(score: number, total: number): 1 | 2 | 3 {
+  if (total <= 0) return 1;
+  const pct = score / total;
+  if (pct >= 0.9) return 3;
+  if (pct >= 0.6) return 2;
+  return 1;
+}
+
 /** Immutably add a newly-found word to the learned list if it isn't there yet. */
 export function mergeLearnedWord(
   learned: LearnedWord[],

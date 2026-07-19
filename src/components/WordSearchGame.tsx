@@ -194,7 +194,8 @@ export default function WordSearchGame({
       if (target) {
         const item = puzzle.items.find((w) => w.word === target.word);
         streakRef.current += 1;
-        speakText(target.word);
+        // Note: don't speak the word here — the WordReveal modal that
+        // opens next auto-speaks it, so speaking again would double up.
         setFoundWords((prev) => [
           ...prev,
           { word: target.word, cells: target.cells, meta: item }

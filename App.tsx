@@ -40,7 +40,7 @@ import {
   DEFAULT_SETTINGS,
   STORAGE_KEYS
 } from './src/core/constants';
-import { getLanguageConfig, isVowelForLang } from './src/core/languages';
+import { getLanguageConfig } from './src/core/languages';
 import {
   resetScoresOnly,
   restartAtLevelOne,
@@ -155,15 +155,8 @@ function AppInner() {
       if (!letter) return;
       if (!settings.letterSpeech) return;
       speak(letter, { rate: 0.9, pitch: 1.2, interrupt: true });
-      if (settings.announceLetterType) {
-        const label = isVowelForLang(letter, settings.language)
-          ? langCfg.vowelLabel
-          : langCfg.consonantLabel;
-        // Small delay so the letter finishes speaking first.
-        setTimeout(() => speak(label, { rate: 0.9, pitch: 1.15, interrupt: false }), 250);
-      }
     },
-    [speak, settings.letterSpeech, settings.announceLetterType, settings.language, langCfg]
+    [speak, settings.letterSpeech]
   );
 
   const speakText = useCallback(

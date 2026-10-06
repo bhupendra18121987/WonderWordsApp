@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { useWindowDimensions, View } from 'react-native';
 
-const PARTY_COLORS = ['#7c3aed', '#ffcf5c', '#58c896', '#6ec9ff', '#d19cff', '#ff9f43', '#ffffff'];
+const PARTY_COLORS = ['#147d78', '#ffcf5c', '#58c896', '#6ec9ff', '#d19cff', '#ff9f43', '#ffffff'];
 
 interface MiniConfettiProps {
   /** Increment this number to trigger a burst. */

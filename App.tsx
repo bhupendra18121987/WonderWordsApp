@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View } from 'react-native';
+import { BackHandler, Platform, StyleSheet, ToastAndroid, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // Screens & components
@@ -27,10 +27,16 @@ import BottomNav, { type NavScreen } from './src/components/BottomNav';
 import TopBar from './src/components/TopBar';
 import RewardsScreen from './src/components/RewardsScreen';
 import ProfileScreen from './src/components/ProfileScreen';
+import AdventureActivity from './src/components/AdventureActivity';
+import type { AdventureId } from './src/core/adventures';
+import ParentGate from './src/components/ParentGate';
+import ParentDashboard from './src/components/ParentDashboard';
 
 // Hooks
 import useLocalStorage from './src/hooks/useLocalStorage';
 import useSpeech from './src/hooks/useSpeech';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 // Core (shared with web)
 import {
@@ -73,7 +79,9 @@ type Screen =
   | 'twoPlayer'
   | 'trace'
   | 'rewards'
-  | 'profile';
+  | 'profile'
+  | 'adventure'
+  | 'parents';
 
 export default function App() {
   return (
@@ -131,21 +139,101 @@ function AppInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [persistenceLoaded]);
 
+  // One-time migration: older builds had sound OFF by default. Flip it ON
+  // for any existing user who never explicitly toggled sound themselves.
+  useEffect(() => {
+    if (!persistenceLoaded) return;
+    const MIGR_KEY = 'ww:migr:soundOn';
+    AsyncStorage.getItem(MIGR_KEY).then((done) => {
+      if (done) return; // migration already ran
+      // If sound is currently false (stored as false from old default), turn it on.
+      setRawSettings((prev) => {
+        if ((prev as Partial<Settings>).sound === false) {
+          return { ...prev, sound: true } as Partial<Settings>;
+        }
+        return prev;
+      });
+      AsyncStorage.setItem(MIGR_KEY, '1').catch(() => {});
+    }).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [persistenceLoaded]);
+
   // ─────────── Ephemeral state ───────────
-  const [screen, setScreen] = useState<Screen>('splash');
+  const [screen, setScreenState] = useState<Screen>('splash');
+  const navigationHistory = useRef<Screen[]>([]);
+  const lastRootBackPress = useRef(0);
+  const setScreen = useCallback((nextScreen: Screen) => {
+    if (nextScreen === screen) return;
+    const history = navigationHistory.current;
+    const previousVisit = history.lastIndexOf(nextScreen);
+    if (previousVisit >= 0) {
+      history.splice(previousVisit);
+    } else if (nextScreen === 'home' && (screen === 'splash' || (screen === 'ageSelect' && !setupComplete))) {
+      history.length = 0;
+    } else {
+      history.push(screen);
+    }
+    setScreenState(nextScreen);
+  }, [screen, setupComplete]);
   const [pendingLang, setPendingLang] = useState<Language | null>(null);
   const [pendingAge, setPendingAge] = useState<AgeGroupKey | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showParentGate, setShowParentGate] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [mascotMessage, setMascotMessage] = useState('Hi! Ready to play?');
 
   type ConfirmAction = 'resetAll' | 'resetScores' | 'restartLevel';
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
+  const exitPrompt = t(settings.language).backAgainToExit;
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (confirmAction) {
+        setConfirmAction(null);
+        return true;
+      }
+      if (showSettings) {
+        setShowSettings(false);
+        return true;
+      }
+      if (showParentGate) {
+        setShowParentGate(false);
+        return true;
+      }
+      if (showOnboarding) {
+        setShowOnboarding(false);
+        return true;
+      }
+      const previousScreen = navigationHistory.current.pop();
+      if (previousScreen) {
+        lastRootBackPress.current = 0;
+        setScreenState(previousScreen);
+        return true;
+      }
+      if (screen === 'splash') return false;
+      if (screen !== 'home') {
+        lastRootBackPress.current = 0;
+        setScreenState('home');
+        return true;
+      }
+      const now = Date.now();
+      if (now - lastRootBackPress.current <= 2000) {
+        lastRootBackPress.current = 0;
+        BackHandler.exitApp();
+        return true;
+      }
+      lastRootBackPress.current = now;
+      ToastAndroid.show(exitPrompt, ToastAndroid.SHORT);
+      return true;
+    });
+    return () => subscription.remove();
+  }, [confirmAction, showSettings, showParentGate, showOnboarding, screen, exitPrompt]);
 
   // ─────────── Derived ───────────
   const langCfg = getLanguageConfig(settings.language);
   const strings = t(settings.language);
-  const { speak } = useSpeech({
+  const { speak, cancel: cancelSpeech } = useSpeech({
     enabled: settings.sound,
     lang: langCfg.bcp47
   });
@@ -154,18 +242,22 @@ function AppInner() {
     (letter: string) => {
       if (!letter) return;
       if (!settings.letterSpeech) return;
-      speak(letter, { rate: 0.9, pitch: 1.2, interrupt: true });
+      speak(letter, { rate: 0.98, pitch: 1.38, interrupt: true });
     },
     [speak, settings.letterSpeech]
   );
 
   const speakText = useCallback(
-    (text: string) => {
+    (text: string, languageOverride?: string, options?: { rate?: number; interrupt?: boolean }) => {
       if (!text) return;
-      speak(text, { rate: 0.9, pitch: 1.15 });
+      speak(text, { rate: options?.rate ?? 0.98, pitch: 1.38, lang: languageOverride, interrupt: options?.interrupt ?? true });
     },
     [speak]
   );
+
+  useLayoutEffect(() => {
+    cancelSpeech();
+  }, [screen, cancelSpeech]);
 
   const speakLearned = useCallback(
     (w: LearnedWord) => speakText(`${w.word}. ${w.meaning}`),
@@ -212,10 +304,20 @@ function AppInner() {
   };
 
   const [selectedLevel, setSelectedLevel] = useState<number | undefined>(undefined);
+  const [selectedAdventure, setSelectedAdventure] = useState<AdventureId>('counting');
   const handlePlay = (level?: number) => {
     setSelectedLevel(level);
     setScreen('game');
     setMascotMessage(strings.letsFind);
+  };
+
+  const handleAdventureComplete = (earnedStars: number) => {
+    setProgress((current) => ({
+      ...current,
+      stars: current.stars + earnedStars,
+      activityStars: (current.activityStars ?? 0) + earnedStars,
+      activitiesCompleted: (current.activitiesCompleted ?? 0) + 1
+    }));
   };
 
   // ─────────── Reset actions ───────────
@@ -239,7 +341,8 @@ function AppInner() {
         setSeenOnboarding(false);
         setAgeGroup(null);
         setShowSettings(false);
-        setScreen('splash');
+        navigationHistory.current.length = 0;
+        setScreenState('splash');
       }
     },
     resetScores: {
@@ -278,6 +381,8 @@ function AppInner() {
     screen === 'karaoke' ||
     screen === 'twoPlayer' ||
     screen === 'trace' ||
+    screen === 'adventure' ||
+    screen === 'parents' ||
     screen === 'tictactoe' ||
     (screen === 'languageSelect' && !setupComplete) ||
     (screen === 'ageSelect' && !setupComplete);
@@ -307,7 +412,7 @@ function AppInner() {
       <StatusBar style="dark" />
 
       {screen === 'splash' && (
-        <SplashScreen onStart={handleSplashStart} ready={persistenceLoaded} />
+        <SplashScreen onStart={handleSplashStart} ready={persistenceLoaded} language={settings.language} />
       )}
 
       {screen === 'languageSelect' && (
@@ -339,15 +444,18 @@ function AppInner() {
           onReview={() => setScreen('review')}
           onAlphabet={() => setScreen('alphabet')}
           onMiniGames={() => setScreen('miniGames')}
+          onAdventure={(id) => { setSelectedAdventure(id); setScreen('adventure'); }}
           onRestartLevel={() => setConfirmAction('restartLevel')}
         />
       )}
 
       {screen === 'game' && ageGroup && (
         <WordSearchGame
+          key={`${ageGroup}-${settings.language}-${selectedLevel ?? 'current'}`}
           ageGroup={ageGroup}
           level={selectedLevel ?? progress.level}
           language={settings.language}
+          sound={settings.sound}
           progress={progress}
           onProgressUpdate={setProgress}
           onExit={() => setScreen('home')}
@@ -380,6 +488,7 @@ function AppInner() {
 
       {screen === 'tictactoe' && ageGroup && (
         <TicTacToeGame
+          key={`${ageGroup}-${settings.language}`}
           ageGroup={ageGroup}
           language={settings.language}
           onExit={() => setScreen('miniGames')}
@@ -400,7 +509,14 @@ function AppInner() {
             karaoke: true,
             twoPlayer: true,
             trace: true,
-            tictactoe: true
+            tictactoe: true,
+            counting: true,
+            numbers: true,
+            patterns: true,
+            memory: true,
+            animals: true,
+            story: true,
+            drawing: true
           }}
           onBack={() => setScreen('home')}
           onPick={(id: MiniGameId) => {
@@ -413,12 +529,17 @@ function AppInner() {
             else if (id === 'twoPlayer') setScreen('twoPlayer');
             else if (id === 'trace') setScreen('trace');
             else if (id === 'tictactoe') setScreen('tictactoe');
+            else {
+              setSelectedAdventure(id);
+              setScreen('adventure');
+            }
           }}
         />
       )}
 
       {screen === 'letterHunt' && ageGroup && (
         <LetterHuntGame
+          key={`${ageGroup}-${settings.language}`}
           ageGroup={ageGroup}
           language={settings.language}
           onExit={() => setScreen('miniGames')}
@@ -428,6 +549,7 @@ function AppInner() {
 
       {screen === 'tapColor' && ageGroup && (
         <TapColorGame
+          key={`${ageGroup}-${settings.language}`}
           ageGroup={ageGroup}
           language={settings.language}
           onExit={() => setScreen('miniGames')}
@@ -437,6 +559,7 @@ function AppInner() {
 
       {screen === 'missingLetter' && ageGroup && (
         <MissingLetterGame
+          key={`${ageGroup}-${settings.language}`}
           ageGroup={ageGroup}
           language={settings.language}
           onExit={() => setScreen('miniGames')}
@@ -446,6 +569,7 @@ function AppInner() {
 
       {screen === 'antonymPairs' && ageGroup && (
         <AntonymPairsGame
+          key={`${ageGroup}-${settings.language}`}
           ageGroup={ageGroup}
           language={settings.language}
           onExit={() => setScreen('miniGames')}
@@ -455,14 +579,17 @@ function AppInner() {
 
       {screen === 'karaoke' && (
         <AlphabetKaraoke
+          key={settings.language}
           language={settings.language}
           onExit={() => setScreen('miniGames')}
           speakText={speakText}
+          cancelSpeech={cancelSpeech}
         />
       )}
 
       {screen === 'twoPlayer' && ageGroup && (
         <TwoPlayerGame
+          key={`${ageGroup}-${settings.language}`}
           ageGroup={ageGroup}
           language={settings.language}
           onExit={() => setScreen('miniGames')}
@@ -473,12 +600,43 @@ function AppInner() {
 
       {screen === 'trace' && ageGroup && (
         <TraceLetterGame
+          key={`${ageGroup}-${settings.language}`}
           ageGroup={ageGroup}
           language={settings.language}
           onExit={() => setScreen('miniGames')}
           speakText={speakText}
         />
       )}
+
+      {screen === 'adventure' && ageGroup && (
+        <AdventureActivity
+          key={`${selectedAdventure}-${ageGroup}-${settings.language}`}
+          id={selectedAdventure}
+          ageGroup={ageGroup}
+          language={settings.language}
+          onExit={() => setScreen('miniGames')}
+          onComplete={handleAdventureComplete}
+          speakText={speakText}
+        />
+      )}
+
+      {screen === 'parents' && (
+        <ParentDashboard
+          language={settings.language}
+          ageGroup={ageGroup}
+          profileName={profileName}
+          progress={progress}
+          onBack={() => setScreen('home')}
+          onSettings={() => setShowSettings(true)}
+        />
+      )}
+
+      <ParentGate
+        visible={showParentGate}
+        language={settings.language}
+        onCancel={() => setShowParentGate(false)}
+        onUnlock={() => { setShowParentGate(false); setScreen('parents'); }}
+      />
 
       {screen === 'rewards' && (
         <RewardsScreen
@@ -542,8 +700,10 @@ function AppInner() {
       {!hideTopBar && (
         <TopBar
           stars={progress.stars}
+          language={settings.language}
           onStarsPress={() => setScreen('rewards')}
-          onOpenSettings={() => setShowSettings(true)}
+          onOpenSettings={() => setShowParentGate(true)}
+          onOpenParents={() => setShowParentGate(true)}
           onOpenTour={() => setShowOnboarding(true)}
         />
       )}

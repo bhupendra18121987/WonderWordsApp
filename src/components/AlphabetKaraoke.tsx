@@ -10,6 +10,7 @@ interface AlphabetKaraokeProps {
   onExit: () => void;
   /** Speaks a single letter/token in the current language. */
   speakText: (text: string) => void;
+  cancelSpeech: () => void;
 }
 
 /** How long each letter is "held" before advancing to the next. */
@@ -19,7 +20,7 @@ const LETTER_INTERVAL_MS = 900;
  * Chants the alphabet with TTS at a steady rhythm, highlighting each
  * letter as it is spoken. Tapping a letter jumps to it and speaks it.
  */
-export default function AlphabetKaraoke({ language, onExit, speakText }: AlphabetKaraokeProps) {
+export default function AlphabetKaraoke({ language, onExit, speakText, cancelSpeech }: AlphabetKaraokeProps) {
   const strings = t(language);
   const cfg = LANGUAGE_CONFIG[language];
   const letters = useMemo(() => [...cfg.vowels, ...cfg.consonants], [cfg]);
@@ -55,20 +56,29 @@ export default function AlphabetKaraoke({ language, onExit, speakText }: Alphabe
     };
   }, []);
 
-  const togglePlay = () => setPlaying((p) => !p);
+  const togglePlay = () => setPlaying((p) => {
+    if (p) cancelSpeech();
+    return !p;
+  });
   const restart = () => {
+    cancelSpeech();
     setIndex(0);
     setPlaying(true);
+    if (playing && index === 0 && letters[0]) speakText(letters[0]);
   };
   const jumpTo = (i: number) => {
     setIndex(i);
     const letter = letters[i];
-    if (letter) speakText(letter);
+    if (!playing && letter) {
+      cancelSpeech();
+      speakText(letter);
+    }
   };
 
   return (
     <ThemedScreen
       title={strings.karaokeName}
+      language={language}
       onBack={onExit}
       headerRight={<Text style={styles.headerRight}>{index + 1} / {letters.length}</Text>}
       scroll={false}
@@ -124,7 +134,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 6
   },
-  title: { fontSize: 20, fontWeight: '900', color: '#6d28d9' },
+  title: { fontSize: 20, fontWeight: '900', color: '#0c615d' },
   headerRight: { fontSize: 14, fontWeight: '800', color: '#6b7280' },
   gridWrap: { alignItems: 'center', paddingBottom: 12 },
   grid: {
@@ -147,8 +157,8 @@ const styles = StyleSheet.create({
   },
   cardDone: { backgroundColor: '#a7f3d0', opacity: 0.7 },
   cardCurrent: {
-    backgroundColor: '#7c3aed',
-    borderColor: '#6d28d9',
+    backgroundColor: '#147d78',
+    borderColor: '#0c615d',
     transform: [{ scale: 1.12 }]
   },
   cardText: { fontSize: 32, fontWeight: '900', color: '#1e1b4b' },
@@ -161,7 +171,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   controlBtn: { paddingHorizontal: 22, paddingVertical: 14, borderRadius: 999 },
-  controlPrimary: { backgroundColor: '#7c3aed' },
+  controlPrimary: { backgroundColor: '#147d78' },
   controlPrimaryText: { color: '#fff', fontWeight: '900', fontSize: 16 },
   controlGhost: { backgroundColor: '#ffffff', borderWidth: 2, borderColor: '#e5e5f0' },
   controlGhostText: { color: '#1e1b4b', fontWeight: '800', fontSize: 15 },

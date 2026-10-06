@@ -1,9 +1,10 @@
-import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { t } from '../core/i18n';
 import { colors, radii, shadow } from '../core/theme';
 import type { AgeGroupKey, Language, Progress } from '../core/types';
+import { adventureInfo, type AdventureId } from '../core/adventures';
 import {
   LevelMapScene,
   LevelStar,
@@ -20,6 +21,7 @@ interface HomeScreenProps {
   onReview: () => void;
   onAlphabet: () => void;
   onMiniGames: () => void;
+  onAdventure: (id: AdventureId) => void;
   onRestartLevel: () => void;
 }
 
@@ -35,7 +37,7 @@ const TILE_COLORS: Record<LevelPos['color'], { bg: string; dark: string }> = {
   orange: { bg: '#ff9a3c', dark: '#c25f0a' },
   green: { bg: '#3ecf5c', dark: '#2b8a3e' },
   blue: { bg: '#4aaaf1', dark: '#1f6ebd' },
-  purple: { bg: '#a26bff', dark: '#5b21b6' }
+  purple: { bg: '#a26bff', dark: '#0c615d' }
 };
 
 export default function HomeScreen({
@@ -45,6 +47,7 @@ export default function HomeScreen({
   onReview,
   onAlphabet,
   onMiniGames,
+  onAdventure,
   onRestartLevel
 }: HomeScreenProps) {
   const strings = t(language);
@@ -56,17 +59,37 @@ export default function HomeScreen({
 
   return (
     <LinearGradient
-      colors={['#8a4ff0', '#6b2fd5']}
+      colors={['#dff3e9', '#f8f5e9']}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
-      style={[styles.screen, { paddingTop: insets.top + 20, paddingBottom: 130 + insets.bottom }]}
+      style={styles.screen}
     >
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.content, { paddingTop: insets.top + 12, paddingBottom: 112 + insets.bottom }]}>
       <View style={styles.hero}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.heroTitle}>Hello, Little Explorer!</Text>
-          <Text style={styles.heroSub}>Let's start your word adventure!</Text>
+          <Text style={styles.heroTitle}>{strings.homeGreeting}</Text>
+          <Text style={styles.heroSub}>{strings.homeSub}</Text>
         </View>
         <PandaMascot size={80} />
+      </View>
+
+      <View style={styles.quickSection}>
+        <Text style={styles.quickHeading}>{strings.chooseAdventure}</Text>
+        <View style={styles.quickGrid}>
+          <Pressable style={[styles.quickCard, { backgroundColor: '#ffe49a' }]} onPress={onAlphabet} accessibilityRole="button">
+            <Text style={styles.quickEmoji}>📖</Text><Text style={styles.quickTitle}>{strings.readingName}</Text><Text style={styles.quickSub}>{strings.navLetters}</Text>
+          </Pressable>
+          {(['counting', 'memory', 'drawing'] as const).map((id) => {
+            const info = adventureInfo(id, language);
+            const bg = id === 'counting' ? '#ffd4e2' : id === 'memory' ? '#cef0d5' : '#ccecff';
+            return <Pressable key={id} style={[styles.quickCard, { backgroundColor: bg }]} onPress={() => onAdventure(id)} accessibilityRole="button" accessibilityLabel={info.name}>
+              <Text style={styles.quickEmoji}>{info.emoji}</Text><Text style={styles.quickTitle} numberOfLines={1}>{info.name}</Text><Text style={styles.quickSub} numberOfLines={1}>{info.subtitle}</Text>
+            </Pressable>;
+          })}
+        </View>
+        <Pressable style={styles.exploreButton} onPress={onMiniGames} accessibilityRole="button">
+          <Text style={styles.exploreText}>{strings.exploreActivities}  →</Text>
+        </Pressable>
       </View>
 
       <View style={[styles.mapCard, { width: mapWidth, height: mapHeight }]}>
@@ -77,7 +100,9 @@ export default function HomeScreen({
           {LEVEL_POSITIONS.map((pos, idx) => {
             const level = idx + 1;
             const unlocked = progress.level >= level;
-            const earned = Math.max(0, Math.min(3, progress.stars - (level - 1) * 3));
+            const earned = level < progress.level
+              ? Math.max(1, Math.min(3, Math.floor((progress.stars - (progress.activityStars ?? 0)) / Math.max(1, progress.puzzlesCompleted))))
+              : 0;
             const tint = TILE_COLORS[pos.color];
             const topPct = parseFloat(pos.top) / 100;
             const leftPct = parseFloat(pos.left) / 100;
@@ -104,7 +129,7 @@ export default function HomeScreen({
                 <View style={styles.tileIcon}>
                   {unlocked ? <UnlockedIcon size={20} /> : <LockIcon size={20} />}
                 </View>
-                <Text style={styles.tileText}>Level {level}</Text>
+                <Text style={styles.tileText}>{strings.level} {level}</Text>
                 <View style={styles.tileStars}>
                   <LevelStar filled={earned >= 1} size={14} />
                   <LevelStar filled={earned >= 2} size={14} />
@@ -117,15 +142,15 @@ export default function HomeScreen({
       </View>
 
       <View style={styles.shortcutRow}>
-        <Pressable style={[styles.shortcut, { backgroundColor: '#ffd23c' }]} onPress={onMiniGames}>
+        <Pressable style={[styles.shortcut, { backgroundColor: '#ffe38b' }]} onPress={onMiniGames}>
           <Text style={styles.shortcutIcon}>🎮</Text>
           <Text style={styles.shortcutText}>{strings.miniGamesTile}</Text>
         </Pressable>
-        <Pressable style={[styles.shortcut, { backgroundColor: '#8ed2ff' }]} onPress={onReview}>
+        <Pressable style={[styles.shortcut, { backgroundColor: '#bfdbfe' }]} onPress={onReview}>
           <Text style={styles.shortcutIcon}>📚</Text>
           <Text style={styles.shortcutText}>{strings.learned(learnedCount)}</Text>
         </Pressable>
-        <Pressable style={[styles.shortcut, { backgroundColor: '#ffb0d1' }]} onPress={onAlphabet}>
+        <Pressable style={[styles.shortcut, { backgroundColor: '#ffc4dd' }]} onPress={onAlphabet}>
           <Text style={styles.shortcutIcon}>🔤</Text>
           <Text style={styles.shortcutText}>{strings.navLetters}</Text>
         </Pressable>
@@ -136,6 +161,7 @@ export default function HomeScreen({
           <Text style={styles.restartText}>{strings.restartLevel}</Text>
         </Pressable>
       ) : null}
+      </ScrollView>
     </LinearGradient>
   );
 }
@@ -143,6 +169,8 @@ export default function HomeScreen({
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
+  },
+  content: {
     paddingHorizontal: 16,
     gap: 14,
     alignItems: 'center'
@@ -155,14 +183,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     // Match the web `.home-hero { margin: 44px 0 auto }` — push the card
     // down so it clears the absolutely-positioned TopBar chrome.
-    marginTop: 44
+    marginTop: 26
   },
+  quickSection: { width: '100%', gap: 8 },
+  quickHeading: { color: '#155e59', fontSize: 16, fontWeight: '900' },
+  quickGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  quickCard: { width: '48%', minHeight: 91, borderRadius: 20, paddingHorizontal: 8, paddingVertical: 8, alignItems: 'center', justifyContent: 'center', gap: 2, borderWidth: 2, borderColor: 'rgba(255,255,255,0.9)', ...shadow.soft },
+  quickEmoji: { fontSize: 27, lineHeight: 31 },
+  quickTitle: { color: colors.ink, fontSize: 12, fontWeight: '900', textAlign: 'center', marginTop: 5 },
+  quickSub: { color: '#615679', fontSize: 9, fontWeight: '700', textAlign: 'center' },
+  exploreButton: { alignSelf: 'flex-start', minHeight: 36, justifyContent: 'center', paddingHorizontal: 15, borderRadius: radii.pill, backgroundColor: '#fff', ...shadow.soft },
+  exploreText: { color: colors.primary, fontSize: 13, fontWeight: '900' },
   heroTitle: {
     fontSize: 26,
     fontWeight: '900',
-    color: '#fff',
+    color: '#174e50',
     lineHeight: 30,
-    textShadowColor: 'rgba(30,15,110,0.35)',
+    textShadowColor: 'rgba(255,255,255,0.65)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 0
   },
@@ -170,14 +207,14 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontSize: 13,
     fontWeight: '700',
-    color: 'rgba(255,255,255,0.92)'
+    color: '#426d68'
   },
   mapCard: {
     borderRadius: radii.lg,
     overflow: 'hidden',
     borderWidth: 3,
-    borderColor: '#d8c7ff',
-    backgroundColor: '#b8f0ff',
+    borderColor: '#fffefa',
+    backgroundColor: '#e4f4e6',
     ...shadow.card
   },
   tile: {
@@ -212,14 +249,17 @@ const styles = StyleSheet.create({
   },
   shortcut: {
     flex: 1,
-    borderRadius: radii.md,
-    paddingVertical: 12,
+    minHeight: 76,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.9)',
+    paddingVertical: 8,
     alignItems: 'center',
-    gap: 3,
+    gap: 4,
     ...shadow.soft
   },
-  shortcutIcon: { fontSize: 22 },
-  shortcutText: { fontSize: 12, fontWeight: '900', color: colors.ink, textAlign: 'center' },
+  shortcutIcon: { fontSize: 23 },
+  shortcutText: { fontSize: 12, lineHeight: 18, fontWeight: '900', color: colors.ink, textAlign: 'center', marginTop: 5 },
   restartBtn: {
     alignSelf: 'center',
     backgroundColor: 'rgba(255,255,255,0.9)',

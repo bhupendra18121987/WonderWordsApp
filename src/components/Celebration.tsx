@@ -10,6 +10,8 @@ import {
   useWindowDimensions
 } from 'react-native';
 import ConfettiCannon from 'react-native-confetti-cannon';
+import { t } from '../core/i18n';
+import type { Language } from '../core/types';
 import {
   BigStar,
   Bunting,
@@ -32,6 +34,7 @@ interface CelebrationProps {
   homeLabel?: string;
   pointsEarned?: number;
   coinsEarned?: number;
+  language?: Language;
   onNext: () => void;
   onHome: () => void;
 }
@@ -49,12 +52,13 @@ export default function Celebration({
   homeLabel = 'Home',
   pointsEarned,
   coinsEarned,
+  language = 'en',
   onNext,
   onHome
 }: CelebrationProps) {
   const { width, height } = useWindowDimensions();
   const pandaBounce = useRef(new Animated.Value(0)).current;
-  void praise; void wordsFound; void homeLabel; void subtitle;
+  const strings = t(language);
 
   const earnedPoints = pointsEarned ?? Math.max(10, stars * 20);
   const earnedCoins = coinsEarned ?? Math.max(4, Math.round(stars * 8));
@@ -99,7 +103,10 @@ export default function Celebration({
         </View>
 
         <View style={styles.modal}>
-          <Text style={styles.title}>Level{'\n'}Complete!</Text>
+          <Text style={styles.title}>{strings.levelComplete}</Text>
+          {praise ? <Text style={styles.praise}>{praise}</Text> : null}
+          {subtitle ? <Text style={styles.praise}>{subtitle}</Text> : null}
+          {wordsFound ? <Text style={styles.praise}>{strings.youFound(wordsFound)} {wordsFound === 1 ? strings.wordSuffix : strings.wordsSuffix}</Text> : null}
 
           <Animated.View style={{ transform: [{ translateY: pandaTranslate }] }}>
             <CheerPanda size={160} />
@@ -114,7 +121,7 @@ export default function Celebration({
           ) : null}
 
           <View style={styles.earnedChip}>
-            <Text style={styles.earnedChipText}>You earned</Text>
+            <Text style={styles.earnedChipText}>{strings.earned}</Text>
           </View>
 
           <View style={styles.rewardsRow}>
@@ -129,13 +136,13 @@ export default function Celebration({
           </View>
 
           <View style={styles.actions}>
-            <Pressable onPress={onHome} style={({ pressed }) => [styles.iconBtn, pressed && { transform: [{ scale: 0.95 }] }]}>
+            <Pressable onPress={onHome} accessibilityRole="button" accessibilityLabel={homeLabel || strings.navHome} style={({ pressed }) => [styles.iconBtn, pressed && { transform: [{ scale: 0.95 }] }]}>
               <HomeIcon size={22} />
             </Pressable>
             <Pressable onPress={onNext} style={({ pressed }) => [styles.primaryBtn, pressed && { transform: [{ translateY: 2 }] }]}>
               <Text style={styles.primaryBtnText}>{nextLabel}</Text>
             </Pressable>
-            <Pressable onPress={onNext} style={({ pressed }) => [styles.iconBtn, pressed && { transform: [{ scale: 0.95 }] }]}>
+            <Pressable onPress={onNext} accessibilityRole="button" accessibilityLabel={strings.playAgain} style={({ pressed }) => [styles.iconBtn, pressed && { transform: [{ scale: 0.95 }] }]}>
               <RefreshIcon size={22} />
             </Pressable>
           </View>
@@ -168,10 +175,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '900',
-    color: '#5b21b6',
+    color: '#0c615d',
     textAlign: 'center',
     lineHeight: 34
   },
+  praise: { color: '#6b7280', fontSize: 16, fontWeight: '800', textAlign: 'center' },
   starsRow: { flexDirection: 'row', gap: 6, marginTop: 4 },
   earnedChip: {
     backgroundColor: '#ffe58a',

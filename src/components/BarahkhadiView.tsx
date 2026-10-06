@@ -28,7 +28,7 @@ export default function BarahkhadiView({ language, onSpeak }: BarahkhadiViewProp
 
   if (!entry.hasBarahkhadi || matras.length === 0) {
     return (
-      <Text style={styles.lead}>Barahkhadi is only available in Hindi mode.</Text>
+      <Text style={styles.lead}>{strings.barahkhadiUnavailable}</Text>
     );
   }
 
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent'
   },
   pickerBtnActive: {
-    backgroundColor: '#7c3aed',
+    backgroundColor: '#147d78',
     borderColor: '#ffcf5c',
     transform: [{ scale: 1.06 }]
   },
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2
   },
-  selectedLetter: { fontSize: 56, fontWeight: '800', color: '#6d28d9' },
+  selectedLetter: { fontSize: 56, fontWeight: '800', color: '#0c615d' },
   selectedTrans: { fontSize: 13, fontWeight: '700', color: '#6b7280' },
   grid: {
     flexDirection: 'row',
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     gap: 2
   },
   cellAkshara: { fontSize: 26, fontWeight: '800', color: '#1e1b4b' },
-  cellMatra: { fontSize: 12, fontWeight: '700', color: '#6d28d9' },
+  cellMatra: { fontSize: 12, fontWeight: '700', color: '#0c615d' },
   cellTrans: {
     fontSize: 10,
     fontWeight: '700',

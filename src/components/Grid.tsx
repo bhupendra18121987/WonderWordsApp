@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { lineBetween, readSelection } from '../core/puzzleGenerator';
 import { isVowelForLang } from '../core/languages';
+import { triggerHaptic } from '../core/haptics';
 import type { Cell, Language } from '../core/types';
 
 interface GridProps {
@@ -31,13 +32,8 @@ const CELL_GAP = 4;
 const GRID_PADDING = 8;
 
 /**
- * Drag-select word-search grid for React Native.
- *
- * PanResponder tracks the finger over the grid. On each move we convert
- * page coordinates back to (row, col) using the grid's measured screen
- * position + our known cell size + gap layout. When the finger lifts we
- * compute the straight line between start & current, read the letters in
- * that order, and hand the whole selection to `onSelectionAttempt`.
+ * Drag-select word-search grid with tactile haptics, animated hint pulse,
+ * and high-visibility bubble selection trails.
  */
 function GridInner({
   grid,
@@ -52,7 +48,6 @@ function GridInner({
   gridWidth
 }: GridProps) {
   const size = grid.length;
-  // (gridWidth - 2*padding - (size-1)*gap) / size
   const cellSize = Math.max(
     24,
     Math.floor(
@@ -62,8 +57,6 @@ function GridInner({
 
   const gridViewRef = useRef<View | null>(null);
   const gridPageRef = useRef<{ x: number; y: number } | null>(null);
-  // We mirror mutable puzzle info into refs so the PanResponder callbacks
-  // (created once) always see fresh values.
   const gridRef = useRef(grid);
   const cellSizeRef = useRef(cellSize);
   const sizeRef = useRef(size);
@@ -94,8 +87,6 @@ function GridInner({
     const step = cs + CELL_GAP;
     const c = Math.floor(localX / step);
     const r = Math.floor(localY / step);
-    // Ignore the finger being in the gap between cells (unless it's touching
-    // the padding at the edges of a cell — being generous with hitboxes).
     const withinC = localX - c * step;
     const withinR = localY - r * step;
     if (withinC > cs + CELL_GAP / 2 || withinR > cs + CELL_GAP / 2) return null;
@@ -110,6 +101,7 @@ function GridInner({
     setStart(cell);
     setCurrent(cell);
     setSelecting(true);
+    triggerHaptic('tap');
     onLetterEnter?.(gridRef.current[cell.r]![cell.c]!);
   }, [onLetterEnter]);
 
@@ -119,6 +111,7 @@ function GridInner({
     lastKeyRef.current = key;
     currentRef.current = cell;
     setCurrent(cell);
+    triggerHaptic('tap');
     onLetterEnter?.(gridRef.current[cell.r]![cell.c]!);
   }, [onLetterEnter]);
 
@@ -183,6 +176,7 @@ function GridInner({
   const shakeAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     if (wrongCells.length === 0) return;
+    triggerHaptic('miss');
     Animated.sequence([
       Animated.timing(shakeAnim, { toValue: -6, duration: 60, useNativeDriver: true, easing: Easing.linear }),
       Animated.timing(shakeAnim, { toValue:  6, duration: 60, useNativeDriver: true, easing: Easing.linear }),
@@ -190,6 +184,20 @@ function GridInner({
       Animated.timing(shakeAnim, { toValue:  0, duration: 60, useNativeDriver: true, easing: Easing.linear })
     ]).start();
   }, [wrongCells, shakeAnim]);
+
+  // Hint-cell gentle pulsing animation
+  const hintPulseAnim = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    if (hintCells.length === 0) return;
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(hintPulseAnim, { toValue: 1.14, duration: 380, useNativeDriver: true, easing: Easing.inOut(Easing.ease) }),
+        Animated.timing(hintPulseAnim, { toValue: 1.0, duration: 380, useNativeDriver: true, easing: Easing.inOut(Easing.ease) })
+      ])
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [hintCells, hintPulseAnim]);
 
   return (
     <View
@@ -240,6 +248,16 @@ function GridInner({
                 </Animated.View>
               );
             }
+            if (isHint && !isFound) {
+              return (
+                <Animated.View
+                  key={key}
+                  style={[style, { transform: [{ scale: hintPulseAnim }] }]}
+                >
+                  {inner}
+                </Animated.View>
+              );
+            }
             return (
               <View key={key} style={style}>
                 {inner}
@@ -256,12 +274,14 @@ const styles = StyleSheet.create({
   grid: {
     padding: GRID_PADDING,
     backgroundColor: '#ffffff',
-    borderRadius: 22,
+    borderRadius: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.12,
     shadowRadius: 14,
-    elevation: 4
+    elevation: 4,
+    borderWidth: 2,
+    borderColor: '#e6f4f2'
   },
   gridRow: {
     flexDirection: 'row',
@@ -270,29 +290,49 @@ const styles = StyleSheet.create({
   },
   cell: {
     backgroundColor: '#fef1d6',
-    borderRadius: 10,
+    borderRadius: 12,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#fce7b2'
   },
   cellVowel: {
-    backgroundColor: '#ffd8e4'
+    backgroundColor: '#ffd8e4',
+    borderColor: '#fbcfe8'
   },
   cellActive: {
-    backgroundColor: '#ffcf5c',
-    transform: [{ scale: 1.05 }]
+    backgroundColor: '#fbbf24',
+    borderWidth: 2.5,
+    borderColor: '#f59e0b',
+    borderRadius: 14,
+    transform: [{ scale: 1.08 }],
+    shadowColor: '#d97706',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 4,
+    elevation: 3
   },
   cellFound: {
-    backgroundColor: '#58c896'
+    backgroundColor: '#58c896',
+    borderColor: '#34d399'
   },
   cellWrong: {
-    backgroundColor: '#ff6b6b'
+    backgroundColor: '#ff6b6b',
+    borderColor: '#ef4444'
   },
   cellHint: {
-    backgroundColor: '#d19cff'
+    backgroundColor: '#d19cff',
+    borderColor: '#a855f7',
+    borderWidth: 2.5,
+    shadowColor: '#9333ea',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 4
   },
   cellText: {
     fontSize: 20,
-    fontWeight: '800',
+    fontWeight: '900',
     color: '#1e1b4b'
   },
   cellTextActive: {
@@ -302,7 +342,6 @@ const styles = StyleSheet.create({
     color: '#fff'
   }
 });
-
 
 const Grid = memo(GridInner);
 export default Grid;

@@ -1,8 +1,9 @@
 // Curated antonym pairs for the "Antonym Pairs" memory-match mini-game.
-// Ordered easiest → hardest within each language. The game picks the
-// first N pairs based on age.
+// Each pair creates two cards, giving 6 to 8 interactive card options per session.
+// Shuffled dynamically so kids see a fresh variety of pairs every time.
 
 import type { AgeGroupKey, Language } from '../types';
+import { shuffleInPlace } from '../miniGames';
 
 export interface AntonymPair {
   id: string;
@@ -11,7 +12,6 @@ export interface AntonymPair {
   emoji?: [string, string];
 }
 
-/** Ordered by rough difficulty. First pairs are the most concrete. */
 export const ANTONYM_PAIRS: AntonymPair[] = [
   { id: 'hot-cold',    emoji: ['🔥','❄️'], labels: { en: ['HOT','COLD'],       hi: ['गरम','ठंडा'] } },
   { id: 'big-small',   emoji: ['🐘','🐜'], labels: { en: ['BIG','SMALL'],      hi: ['बड़ा','छोटा'] } },
@@ -27,18 +27,16 @@ export const ANTONYM_PAIRS: AntonymPair[] = [
   { id: 'near-far',    emoji: ['📍','🌍'], labels: { en: ['NEAR','FAR'],       hi: ['पास','दूर'] } }
 ];
 
-/** Number of pairs (so 2× cards) per age group. */
+/** Number of pairs (giving 2× cards = 6 to 8 options) per age group. */
 export const PAIR_COUNT_BY_AGE: Record<AgeGroupKey, number> = {
-  '3-4': 3,
-  '5-6': 4,
-  '7-8': 6
+  '2-3': 3, // 6 card options
+  '3-4': 3, // 6 card options
+  '5-6': 4, // 8 card options
+  '7-8': 4  // 8 card options
 };
 
 export function pickPairsForAge(age: AgeGroupKey): AntonymPair[] {
   const n = PAIR_COUNT_BY_AGE[age];
-  // Shuffle then slice so consecutive sessions vary; ordering already
-  // trends easy → hard so slicing by index also works, but shuffling
-  // avoids repetition of the same pairs every play.
-  const shuffled = [...ANTONYM_PAIRS].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, n);
+  // Randomize from the full pool so pairs vary every session
+  return shuffleInPlace([...ANTONYM_PAIRS]).slice(0, n);
 }

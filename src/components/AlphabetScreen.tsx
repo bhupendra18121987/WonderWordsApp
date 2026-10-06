@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#6d28d9',
+    color: '#0c615d',
     textAlign: 'center'
   },
   tabs: {
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     borderRadius: 999
   },
   tabActive: {
-    backgroundColor: '#7c3aed'
+    backgroundColor: '#147d78'
   },
   tabText: {
     fontSize: 14,
@@ -216,13 +216,13 @@ const styles = StyleSheet.create({
   },
   filterPillVowel: { backgroundColor: '#ffe0ec', borderColor: '#ff8fb5' },
   filterPillConsonant: { backgroundColor: '#dceeff', borderColor: '#6ec5ff' },
-  filterPillActive: { backgroundColor: '#7c3aed', borderColor: '#5b21b6' },
+  filterPillActive: { backgroundColor: '#147d78', borderColor: '#0c615d' },
   filterTextActive: { color: '#fff' },
   statText: { fontSize: 13, fontWeight: '800', color: '#1e1b4b' },
   sectionTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#6d28d9',
+    color: '#0c615d',
     textAlign: 'center'
   },
   letterGrid: {
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     lineHeight: 38
   },
-  letterVowel: { color: '#6d28d9' },
+  letterVowel: { color: '#0c615d' },
   letterConsonant: { color: '#3ba7ea' },
   transliteration: {
     fontSize: 11,
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
   },
   back: {
     marginTop: 16,
-    backgroundColor: '#7c3aed',
+    backgroundColor: '#147d78',
     paddingVertical: 14,
     paddingHorizontal: 22,
     borderRadius: 999,

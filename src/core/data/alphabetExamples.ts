@@ -98,7 +98,9 @@ export const LETTER_EXAMPLES: Record<Language, AlphabetEntry> = {
       { letter: 'ए',  transliteration: 'e',  exampleWord: 'एड़ी',   exampleTrans: 'edi',    emoji: '🦶' },
       { letter: 'ऐ',  transliteration: 'ai', exampleWord: 'ऐनक',    exampleTrans: 'ainak',  emoji: '👓' },
       { letter: 'ओ',  transliteration: 'o',  exampleWord: 'ओखली',   exampleTrans: 'okhli',  emoji: '🥣' },
-      { letter: 'औ',  transliteration: 'au', exampleWord: 'औरत',    exampleTrans: 'aurat',  emoji: '👩' }
+      { letter: 'औ',  transliteration: 'au', exampleWord: 'औरत',    exampleTrans: 'aurat',  emoji: '👩' },
+      { letter: 'अं', transliteration: 'am', exampleWord: 'अंगूर',   exampleTrans: 'angoor', emoji: '🍇' },
+      { letter: 'अः', transliteration: 'ah', exampleWord: 'प्रातः', exampleTrans: 'praatah', emoji: '🌅' }
     ],
     consonants: [
       { letter: 'क',  transliteration: 'ka',   exampleWord: 'कबूतर',  exampleTrans: 'kabootar', emoji: '🕊️' },

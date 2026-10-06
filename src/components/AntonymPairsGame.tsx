@@ -56,10 +56,18 @@ export default function AntonymPairsGame({
   useEffect(() => {
     if (matched.size === initialPairs.length && initialPairs.length > 0) {
       setDone(true);
-      speakText(strings.correctFeedback);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matched]);
+
+  useEffect(() => {
+    setDeck(initialDeck);
+    setFlipped([]);
+    setMatched(new Set());
+    setWrongPair([]);
+    setAttempts(0);
+    setDone(false);
+  }, [initialDeck]);
 
   const isFaceUp = (card: Card) =>
     matched.has(card.pairId) ||
@@ -70,9 +78,8 @@ export default function AntonymPairsGame({
     if (matched.has(card.pairId)) return;
     if (flipped.includes(card.cardId)) return;
     if (wrongPair.length > 0) return;
-    speakText(card.label);
-
     if (flipped.length === 0) {
+      speakText(card.label);
       setFlipped([card.cardId]);
       return;
     }
@@ -81,11 +88,13 @@ export default function AntonymPairsGame({
     const firstCard = deck.find((c) => c.cardId === firstId);
     setAttempts((a) => a + 1);
     if (firstCard && firstCard.pairId === card.pairId && firstCard.cardId !== card.cardId) {
+      speakText(strings.correctFeedback);
       // Match!
       setFlipped([]);
       setMatched((m) => new Set(m).add(card.pairId));
       setBurstCount((b) => b + 1);
     } else {
+      speakText(strings.tryAgainFeedback);
       // Mismatch — flash both face-up, then flip back.
       setWrongPair([firstId, card.cardId]);
       setFlipped([]);
@@ -122,6 +131,7 @@ export default function AntonymPairsGame({
   return (
     <ThemedScreen
       title={strings.antonymName}
+      language={language}
       onBack={onExit}
       headerRight={<Text style={styles.headerRight}>{matched.size} / {initialPairs.length}</Text>}
     >
@@ -144,7 +154,7 @@ export default function AntonymPairsGame({
               ]}
               onPress={() => handleTap(card)}
               accessibilityRole="button"
-              accessibilityLabel={faceUp ? card.label : 'hidden card'}
+              accessibilityLabel={faceUp ? card.label : strings.hiddenCard}
             >
               {faceUp ? (
                 <>
@@ -177,7 +187,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 4
   },
-  title: { fontSize: 20, fontWeight: '900', color: '#6d28d9' },
+  title: { fontSize: 20, fontWeight: '900', color: '#0c615d' },
   headerRight: { fontSize: 14, fontWeight: '800', color: '#6b7280' },
   prompt: { fontSize: 14, fontWeight: '700', color: '#6b7280', marginBottom: 12, textAlign: 'center' },
 
@@ -234,11 +244,11 @@ const styles = StyleSheet.create({
     maxWidth: 460
   },
   doneEmoji: { fontSize: 56 },
-  doneTitle: { fontSize: 22, fontWeight: '900', color: '#6d28d9' },
+  doneTitle: { fontSize: 22, fontWeight: '900', color: '#0c615d' },
   doneScore: { fontSize: 16, fontWeight: '800', color: '#1e1b4b' },
   doneRow: { flexDirection: 'row', gap: 10, marginTop: 8, flexWrap: 'wrap', justifyContent: 'center' },
   actionBtn: { paddingHorizontal: 18, paddingVertical: 12, borderRadius: 999 },
-  primaryBtn: { backgroundColor: '#7c3aed' },
+  primaryBtn: { backgroundColor: '#147d78' },
   primaryBtnText: { color: '#fff', fontWeight: '800' },
   ghostBtn: { backgroundColor: '#ffffff', borderWidth: 2, borderColor: '#e5e5f0' },
   ghostBtnText: { color: '#1e1b4b', fontWeight: '800' }

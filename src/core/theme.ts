@@ -1,13 +1,12 @@
 // Shared design tokens for the WonderWords mobile app.
-// Kept in one place so the whole UI shifts together when we tune the theme.
-// Matches the "violet + cream + yellow" kid-friendly design language.
+// Shared "storybook garden" palette: teal, warm cream, and sunny yellow.
 
 export const colors = {
-  // Primary — playful violet, used for buttons, banners, headers.
-  primary: '#7c3aed',       // violet-600
-  primaryDark: '#6d28d9',   // violet-700
-  primaryLight: '#a78bfa',  // violet-400
-  primarySoft: '#ede9fe',   // violet-100 (backgrounds)
+  // Primary — storybook teal, used for buttons, banners, and headers.
+  primary: '#147d78',
+  primaryDark: '#0c615d',
+  primaryLight: '#66c3b7',
+  primarySoft: '#def3ee',
 
   // Accents.
   accent: '#fbbf24',        // yellow-400 — CTA / stars
@@ -21,17 +20,17 @@ export const colors = {
   info: '#38bdf8',
 
   // Surfaces.
-  bg: '#f3f0ff',            // page background (lavender-cream)
-  bgSoft: '#faf7ff',        // elevated surface tint
-  paper: '#ffffff',         // card body
-  border: '#e5e5f0',        // hairline card border
+  bg: '#f7f6eb',            // warm storybook cream
+  bgSoft: '#fffdf5',
+  paper: '#fffefa',
+  border: '#d9e8df',
 
   // Text.
-  ink: '#1e1b4b',           // primary body text (indigo-950)
-  inkSoft: '#6b7280',       // secondary text
-  inkMuted: '#9ca3af',      // hint text
+  ink: '#183b42',
+  inkSoft: '#557176',
+  inkMuted: '#82989a',
   onPrimary: '#ffffff',     // text sitting on primary color
-  onAccent: '#1e1b4b',      // dark text on yellow
+  onAccent: '#183b42',      // dark text on yellow
 
   // Palette used for age-select / animal tiles + word-search cells.
   tileGreen: '#a7f3d0',
@@ -60,16 +59,16 @@ export const spacing = {
 } as const;
 
 export const shadow = {
-  // Consistent purple-tinted shadow so it doesn't fight the theme.
+  // Soft green-tinted shadows fit the garden palette.
   soft: {
-    shadowColor: '#4c1d95',
+    shadowColor: '#174d4c',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
     shadowRadius: 8,
     elevation: 3
   },
   card: {
-    shadowColor: '#4c1d95',
+    shadowColor: '#174d4c',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
     shadowRadius: 16,

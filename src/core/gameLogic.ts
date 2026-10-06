@@ -99,7 +99,9 @@ export function progressAfterPuzzle(params: {
     puzzlesCompleted,
     learnedWords,
     badges,
-    lastPlayedLevel: level
+    lastPlayedLevel: level,
+    activitiesCompleted: current.activitiesCompleted ?? 0,
+    activityStars: current.activityStars ?? 0
   };
 }
 
@@ -115,7 +117,8 @@ export function resetScoresOnly(current: Progress): Progress {
     stars: 0,
     puzzlesCompleted: 0,
     level: 1,
-    lastPlayedLevel: 0
+    lastPlayedLevel: 0,
+    activityStars: 0
   };
 }
 
@@ -137,9 +140,9 @@ export function restartAtLevelOne(current: Progress): Progress {
  * counter can't leak through either.
  */
 export function sanitizeProgress(p: Progress): Progress {
-  const maxPuzzles = Math.max(p.learnedWords.length, 1) * 4; // very generous
+  const maxPuzzles = Math.max(p.learnedWords.length, 1) * 4 + Math.max(0, p.activitiesCompleted ?? 0);
   const puzzlesCompleted = Math.min(p.puzzlesCompleted, maxPuzzles);
-  const maxStars = Math.max(puzzlesCompleted, 1) * 3;
+  const maxStars = Math.max(puzzlesCompleted, 1) * 3 + Math.max(0, p.activitiesCompleted ?? 0) * 3;
   const stars = Math.min(p.stars, maxStars);
   const level = Math.max(1, Math.min(p.level, puzzlesCompleted + 1));
   if (

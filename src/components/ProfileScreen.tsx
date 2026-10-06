@@ -59,14 +59,14 @@ export default function ProfileScreen({
 
   return (
     <LinearGradient
-      colors={['#8a4ff0', '#6b2fd5']}
+      colors={['#147d78', '#0c615d']}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={[styles.screen, { paddingTop: insets.top + 12, paddingBottom: 130 + insets.bottom }]}
     >
       <View style={styles.topbar}>
-        <BackButton onPress={onBack} variant="light" />
-        <Text style={styles.topTitle}>My Profile</Text>
+        <BackButton onPress={onBack} variant="light" label={strings.back} />
+        <Text style={styles.topTitle}>{strings.profileTitle}</Text>
         <View style={{ width: 44 }} />
       </View>
 
@@ -81,7 +81,7 @@ export default function ProfileScreen({
             onPress={() => setPicking(true)}
             style={({ pressed }) => [styles.cameraBtn, pressed && { transform: [{ scale: 0.94 }] }]}
             accessibilityRole="button"
-            accessibilityLabel="Change avatar"
+            accessibilityLabel={strings.changeAvatar}
           >
             <Text style={styles.cameraIcon}>📷</Text>
           </Pressable>
@@ -123,17 +123,18 @@ export default function ProfileScreen({
         </Pressable>
 
         <View style={styles.statsGrid}>
-          <StatCard icon="🎯" label="Levels" value={String(progress.level)} tint="#c9b4ff" />
-          <StatCard icon="⭐" label="Total Stars" value={String(progress.stars)} tint="#ffe58a" />
-          <StatCard icon="💎" label="Points" value={String(points)} tint="#8ed2ff" />
-          <StatCard icon="📚" label="Words Found" value={String(progress.learnedWords.length)} tint="#b8f597" />
+          <StatCard icon="🎯" label={strings.levels} value={String(progress.level)} tint="#c9b4ff" />
+          <StatCard icon="⭐" label={strings.totalStars} value={String(progress.stars)} tint="#ffe58a" />
+          <StatCard icon="💎" label={strings.points} value={String(points)} tint="#8ed2ff" />
+          <StatCard icon="📚" label={strings.wordsFound} value={String(progress.learnedWords.length)} tint="#b8f597" />
+          <StatCard icon="🗺️" label={strings.activityCount} value={String(progress.activitiesCompleted ?? 0)} tint="#c9e4ff" />
         </View>
       </ScrollView>
 
       <Modal transparent visible={picking} animationType="fade" onRequestClose={() => setPicking(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setPicking(false)}>
           <Pressable style={styles.pickerCard} onPress={(e) => e.stopPropagation()}>
-            <Text style={styles.pickerTitle}>Choose your avatar</Text>
+            <Text style={styles.pickerTitle}>{strings.chooseAvatar}</Text>
             <View style={styles.pickerGrid}>
               {PROFILE_AVATAR_OPTIONS.map((emoji) => {
                 const selected = emoji === profileAvatar;
@@ -262,7 +263,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 2, borderColor: 'transparent'
   },
-  pickerCellSelected: { borderColor: '#7c3aed', backgroundColor: '#e9e2ff' },
+  pickerCellSelected: { borderColor: '#147d78', backgroundColor: '#def3ee' },
   pickerEmoji: { fontSize: 30 }
 });
 

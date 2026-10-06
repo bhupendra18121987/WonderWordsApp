@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Grid from './Grid';
 import ThemedScreen from './ThemedScreen';
+import MiniConfetti from './MiniConfetti';
 import { getAllWords, getWordsData } from '../core/data';
 import { buildPuzzleForLevel } from '../core/puzzleGenerator';
 import { splitGraphemes } from '../core/grapheme';
@@ -28,7 +29,7 @@ interface FoundEntry {
 
 const PLAYER_COLORS: Record<1 | 2, string> = {
   1: '#4b8bef',
-  2: '#6d28d9'
+  2: '#0c615d'
 };
 
 export default function TwoPlayerGame({
@@ -63,14 +64,26 @@ export default function TwoPlayerGame({
   }, [ageGroup, seed, language]);
 
   const [found, setFound] = useState<FoundEntry[]>([]);
+  const [burstCount, setBurstCount] = useState(0);
   const [currentPlayer, setCurrentPlayer] = useState<1 | 2>(1);
   const [wrongCells, setWrongCells] = useState<Cell[]>([]);
+  const [hintCells, setHintCells] = useState<Cell[]>([]);
+  const [hintsUsed, setHintsUsed] = useState(0);
+  const MAX_HINTS = 3;
+  // Mirror `currentPlayer` in a ref so the PanResponder callbacks that
+  // Grid captures always read the LATEST turn, even if React hasn't
+  // handed the parent's rebuilt callback to Grid yet. Otherwise the
+  // player alternation appears "sticky" (always credits P1).
+  const currentPlayerRef = useRef<1 | 2>(1);
+  useEffect(() => { currentPlayerRef.current = currentPlayer; }, [currentPlayer]);
 
   // Reset per-puzzle state when the puzzle regenerates (Play Again, new seed).
   useEffect(() => {
     setFound([]);
     setCurrentPlayer(1);
     setWrongCells([]);
+    setHintCells([]);
+    setHintsUsed(0);
   }, [puzzle]);
 
   const foundWords = useMemo(() => found.map((f) => f.word), [found]);
@@ -107,10 +120,11 @@ export default function TwoPlayerGame({
       });
 
       if (target) {
-        speakText(target.word);
+        speakText(strings.correctFeedback);
+        setBurstCount((count) => count + 1);
         setFound((prev) => [
           ...prev,
-          { word: target.word, cells: target.cells, player: currentPlayer }
+          { word: target.word, cells: target.cells, player: currentPlayerRef.current }
         ]);
       } else {
         setWrongCells(cells);
@@ -120,7 +134,7 @@ export default function TwoPlayerGame({
       // get equal time — regardless of correctness.
       switchTurn();
     },
-    [gameOver, puzzle.placements, foundWords, currentPlayer, switchTurn, speakText]
+    [gameOver, puzzle.placements, foundWords, switchTurn, speakText]
   );
 
   const restart = () => {
@@ -128,6 +142,16 @@ export default function TwoPlayerGame({
     setFound([]);
     setCurrentPlayer(1);
   };
+
+  const useHint = useCallback(() => {
+    if (hintsUsed >= MAX_HINTS || gameOver) return;
+    const remaining = puzzle.placements.filter((p) => !foundWords.includes(p.word));
+    if (remaining.length === 0) return;
+    const target = remaining[Math.floor(Math.random() * remaining.length)]!;
+    setHintCells([target.cells[0]!]);
+    setHintsUsed((n) => n + 1);
+    setTimeout(() => setHintCells([]), 2400);
+  }, [puzzle.placements, foundWords, hintsUsed, gameOver]);
 
   const currentName = currentPlayer === 1 ? strings.player1 : strings.player2;
 
@@ -161,7 +185,7 @@ export default function TwoPlayerGame({
   }
 
   return (
-    <ThemedScreen title={strings.twoPlayerName} onBack={onExit} scroll={false}>
+    <ThemedScreen title={strings.twoPlayerName} language={language} onBack={onExit} scroll={false}>
       <View style={styles.scoreRow}>
         <View
           style={[
@@ -199,6 +223,7 @@ export default function TwoPlayerGame({
               ? { bg: '#6ec5ff', dark: '#2f8ac9' }
               : { bg: '#ff8fb5', dark: '#d95a83' }
           }))}
+          hintCells={hintCells}
           wrongCells={wrongCells}
           language={language}
           gridWidth={gridWidth}
@@ -207,11 +232,23 @@ export default function TwoPlayerGame({
         />
       </View>
 
-      <View style={styles.wordsRow}>
+      <View style={styles.hintRow}>
         <Text style={styles.wordsHint}>
           {found.length} / {totalWords}
         </Text>
+        <Pressable
+          onPress={useHint}
+          disabled={hintsUsed >= MAX_HINTS || gameOver}
+          style={({ pressed }) => [
+            styles.hintBtn,
+            (hintsUsed >= MAX_HINTS || gameOver) && styles.hintBtnDisabled,
+            pressed && !(hintsUsed >= MAX_HINTS || gameOver) && { transform: [{ translateY: 2 }] }
+          ]}
+        >
+          <Text style={styles.hintBtnText}>💡 {strings.hint.replace(/^[💡\s]+/, '')} · {Math.max(0, MAX_HINTS - hintsUsed)}</Text>
+        </Pressable>
       </View>
+      <MiniConfetti trigger={burstCount} />
     </ThemedScreen>
   );
 }
@@ -239,6 +276,22 @@ const styles = StyleSheet.create({
   turnText: { fontSize: 18, fontWeight: '900', marginVertical: 10 },
   wordsRow: { marginTop: 10, alignItems: 'center' },
   wordsHint: { fontSize: 14, fontWeight: '800', color: '#6b7280' },
+  hintRow: {
+    marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    width: '100%'
+  },
+  hintBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 999,
+    backgroundColor: '#ffd23c'
+  },
+  hintBtnDisabled: { opacity: 0.5 },
+  hintBtnText: { fontSize: 13, fontWeight: '900', color: '#1e1b4b' },
   back: {
     marginTop: 16,
     paddingHorizontal: 20,
@@ -261,7 +314,7 @@ const styles = StyleSheet.create({
     maxWidth: 460
   },
   doneEmoji: { fontSize: 56 },
-  doneTitle: { fontSize: 22, fontWeight: '900', color: '#6d28d9', textAlign: 'center' },
+  doneTitle: { fontSize: 22, fontWeight: '900', color: '#0c615d', textAlign: 'center' },
   doneScores: { flexDirection: 'row', gap: 12, marginTop: 6 },
   doneScoreBox: {
     borderWidth: 3,
@@ -274,7 +327,7 @@ const styles = StyleSheet.create({
   doneScoreValue: { fontSize: 20, fontWeight: '900', color: '#1e1b4b', marginTop: 2 },
   doneRow: { flexDirection: 'row', gap: 10, marginTop: 8, flexWrap: 'wrap', justifyContent: 'center' },
   actionBtn: { paddingHorizontal: 18, paddingVertical: 12, borderRadius: 999 },
-  primaryBtn: { backgroundColor: '#7c3aed' },
+  primaryBtn: { backgroundColor: '#147d78' },
   primaryBtnText: { color: '#fff', fontWeight: '800' },
   ghostBtn: { backgroundColor: '#ffffff', borderWidth: 2, borderColor: '#e5e5f0' },
   ghostBtnText: { color: '#1e1b4b', fontWeight: '800' }

@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Modal, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import * as Speech from 'expo-speech';
 import { t } from '../core/i18n';
 import { getLanguageConfig } from '../core/languages';
+import useSpeech from '../hooks/useSpeech';
 import { colors, radii } from '../core/theme';
 import type { Language } from '../core/types';
 import {
@@ -24,6 +24,7 @@ interface RevealItem {
 interface WordRevealProps {
   word: RevealItem | null;
   language?: Language;
+  sound?: boolean;
   onClose: () => void;
 }
 
@@ -38,26 +39,30 @@ function characterFor(word: string, emoji: string) {
 }
 
 /** Purple full-screen "Great Job!" reveal shown after finding a word. */
-export default function WordReveal({ word, language = 'en', onClose }: WordRevealProps) {
+export default function WordReveal({ word, language = 'en', sound = true, onClose }: WordRevealProps) {
   const { width, height } = useWindowDimensions();
   const strings = t(language);
   const langCfg = getLanguageConfig(language);
+  const { speak, cancel } = useSpeech({ enabled: sound, lang: langCfg.bcp47 });
+  const speakWord = useCallback(() => {
+    if (!word) return;
+    speak(word.word, { rate: 0.98, pitch: 1.38, interrupt: true });
+    speak(strings.correctFeedback, { rate: 0.98, pitch: 1.38, interrupt: false });
+  }, [speak, word, strings.correctFeedback]);
 
   useEffect(() => {
-    if (!word) return;
-    Speech.speak(word.word, { language: langCfg.bcp47, rate: 0.9, pitch: 1.15 });
-  }, [word, langCfg.bcp47]);
+    speakWord();
+    return cancel;
+  }, [speakWord, cancel]);
 
   if (!word) return null;
 
-  const praise = language === 'hi' ? 'शाबाश!' : 'Great Job!';
+  const praise = strings.correctFeedback;
   const nextLabel = language === 'hi' ? 'अगला शब्द' : 'Next Word';
-  const speak = () => Speech.speak(word.word, { language: langCfg.bcp47, rate: 0.9, pitch: 1.15 });
-
   return (
     <Modal transparent visible animationType="fade" onRequestClose={onClose}>
       <LinearGradient
-        colors={['#8a4ff0', '#6b2fd5']}
+        colors={['#147d78', '#0c615d']}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
         style={styles.overlay}
@@ -78,8 +83,8 @@ export default function WordReveal({ word, language = 'en', onClose }: WordRevea
             <Text style={styles.word}>{word.word.toUpperCase()}</Text>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`Speak ${word.word}`}
-              onPress={speak}
+              accessibilityLabel={strings.speakWord(word.word)}
+              onPress={speakWord}
               style={({ pressed }) => [styles.speakerBtn, pressed && styles.pressed]}
             >
               <SpeakerIcon size={20} />

@@ -1,7 +1,7 @@
 // Shared, platform-agnostic types. Consumed by both the web app and the future
 // React Native mobile app — do NOT reference any DOM / browser APIs here.
 
-export type AgeGroupKey = '3-4' | '5-6' | '7-8';
+export type AgeGroupKey = '2-3' | '3-4' | '5-6' | '7-8';
 
 export type Language = 'en' | 'hi';
 
@@ -98,6 +98,8 @@ export interface Progress {
   learnedWords: LearnedWord[];
   badges: string[];
   lastPlayedLevel: number;
+  activitiesCompleted?: number;
+  activityStars?: number;
 }
 
 export interface FoundWord {

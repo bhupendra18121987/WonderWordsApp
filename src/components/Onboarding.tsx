@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     width: '100%'
   },
   emoji: { fontSize: 76, lineHeight: 88 },
-  title: { fontSize: 24, fontWeight: '800', color: '#6d28d9', textAlign: 'center' },
+  title: { fontSize: 24, fontWeight: '800', color: '#0c615d', textAlign: 'center' },
   text: {
     fontSize: 15,
     color: '#6b7280',
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.15)'
   },
   dotActive: {
-    backgroundColor: '#7c3aed'
+    backgroundColor: '#147d78'
   },
   buttons: {
     flexDirection: 'row',
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     minHeight: 44
   },
-  btnPrimary: { backgroundColor: '#7c3aed' },
+  btnPrimary: { backgroundColor: '#147d78' },
   btnPrimaryText: { color: '#fff', fontWeight: '800', fontSize: 15 },
   btnGhost: { backgroundColor: '#ffffff', borderWidth: 2, borderColor: '#e5e5f0' },
   btnGhostText: { color: '#1e1b4b', fontWeight: '800', fontSize: 14 }

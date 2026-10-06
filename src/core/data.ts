@@ -17,9 +17,18 @@ import type {
 export const wordsData: WordsData = wordsEn as WordsData;
 export const rewardsData: RewardsData = rewardsEn as RewardsData;
 
+function addToddlerWords(data: WordsData): WordsData {
+  return {
+    ...data,
+    words: data.words.map((word) => word.ageGroups.includes('3-4')
+      ? { ...word, ageGroups: ['2-3', ...word.ageGroups] }
+      : word)
+  };
+}
+
 const WORDS_BY_LANG: Record<Language, WordsData> = {
-  en: wordsEn as WordsData,
-  hi: wordsHi as WordsData
+  en: addToddlerWords(wordsEn as WordsData),
+  hi: addToddlerWords(wordsHi as WordsData)
 };
 
 const REWARDS_BY_LANG: Record<Language, RewardsData> = {

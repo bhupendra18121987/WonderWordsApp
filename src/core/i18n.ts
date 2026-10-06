@@ -1,6 +1,4 @@
-// Small UI-string dictionary. Only visible/audible labels that a child sees
-// during the actual game are translated — parent-facing screens (settings,
-// onboarding) stay in English for now.
+// UI strings shared by every screen so the selected language applies throughout the app.
 
 import type { Language } from './types';
 
@@ -152,8 +150,57 @@ export interface UIStrings {
   traceModeCursive: string;
   traceModeHiLetters: string;
   traceModeHiWords: string;
+  traceCheck: string;
+  traceNeedMore: string;
+  tracePassed: string;
   // Misc labels
   badgesTitle: string;
+  worldTitle: string;
+  activityCount: string;
+  lastPlayed: string;
+  parentArea: string;
+  parentPrompt: string;
+  parentTryAgain: string;
+  parentContinue: string;
+  parentSummary: string;
+  languageHeading: string;
+  languageDescription: string;
+  next: string;
+  splashTagline: string;
+  letsPlay: string;
+  forParents: string;
+  homeGreeting: string;
+  homeSub: string;
+  chooseAdventure: string;
+  exploreActivities: string;
+  readingName: string;
+  profileTitle: string;
+  changeAvatar: string;
+  chooseAvatar: string;
+  levels: string;
+  totalStars: string;
+  points: string;
+  wordsFound: string;
+  rewardsTitle: string;
+  stickers: string;
+  playForRewards: string;
+  stickerComingSoon: string;
+  barahkhadiUnavailable: string;
+  earned: string;
+  levelComplete: string;
+  wordMeaning: string;
+  noWordsYet: string;
+  backHome: string;
+  previous: string;
+  speakWord: (word: string) => string;
+  versus: string;
+  tour: string;
+  close: string;
+  back: string;
+  backAgainToExit: string;
+  toggleMusic: string;
+  settings: string;
+  hiddenCard: string;
 }
 
 const en: UIStrings = {
@@ -262,7 +309,7 @@ const en: UIStrings = {
   antonymName: 'Antonym Pairs',
   antonymSub: 'Match the opposites',
   antonymPrompt: 'Find the matching pairs',
-  correctFeedback: 'Yes! 🎉',
+  correctFeedback: 'Great!',
   tryAgainFeedback: 'Try again',
   scoreLabel: (n) => `⭐ ${n}`,
   roundLabel: (n, total) => `${n} / ${total}`,
@@ -288,7 +335,56 @@ const en: UIStrings = {
   traceModeCursive: '𝒜 𝒷 𝒬',
   traceModeHiLetters: 'अ आ इ',
   traceModeHiWords: 'आम',
-  badgesTitle: '🏅 Badges'
+  traceCheck: '✓ Check letter',
+  traceNeedMore: 'Trace more of the letter, then check again.',
+  tracePassed: 'Great!',
+  badgesTitle: '🏅 Badges',
+  worldTitle: 'My Learning World',
+  activityCount: 'Adventure activities',
+  lastPlayed: 'LAST',
+  parentArea: 'Parents',
+  parentPrompt: 'Grown-ups only: what is 14 + 7?',
+  parentTryAgain: 'Try once more with a grown-up.',
+  parentContinue: 'Continue',
+  parentSummary: 'Learning snapshot',
+  languageHeading: 'Pick your language!',
+  languageDescription: 'Choose a language for your child.',
+  next: 'Next →',
+  splashTagline: 'Learn Words. Discover Worlds.',
+  letsPlay: "Let's Play",
+  forParents: 'For Parents',
+  homeGreeting: 'Hello, Little Explorer!',
+  homeSub: "Let's start your word adventure!",
+  chooseAdventure: 'Choose an adventure',
+  exploreActivities: 'Explore all games',
+  readingName: 'Read & discover',
+  profileTitle: 'My Profile',
+  changeAvatar: 'Change avatar',
+  chooseAvatar: 'Choose your avatar',
+  levels: 'Levels',
+  totalStars: 'Total Stars',
+  points: 'Points',
+  wordsFound: 'Words Found',
+  rewardsTitle: 'My Rewards 🎁',
+  stickers: 'Stickers',
+  playForRewards: 'Play puzzles and mini-games to collect more!',
+  stickerComingSoon: 'Sticker collection coming soon.',
+  barahkhadiUnavailable: 'Barahkhadi is only available in Hindi mode.',
+  earned: 'You earned',
+  levelComplete: 'Level Complete!',
+  wordMeaning: 'Word Meaning',
+  noWordsYet: 'No words yet — go find some!',
+  backHome: '← Back home',
+  previous: 'Previous',
+  speakWord: (word) => `Speak ${word}`,
+  versus: 'VS',
+  tour: 'Tour',
+  close: 'Close',
+  back: 'Back',
+  backAgainToExit: 'Press back again to exit',
+  toggleMusic: 'Toggle music',
+  settings: 'Settings',
+  hiddenCard: 'Hidden card'
 };
 
 const hi: UIStrings = {
@@ -338,7 +434,7 @@ const hi: UIStrings = {
   ticTacToeSub: 'तीन एक लाइन में!',
   yourTurn: 'तुम्हारी बारी',
   owlTurn: 'ओली की बारी',
-  youWon: 'तुम जीत गए! 🎉',
+  youWon: 'You won! 🎉',
   owlWon: 'ओली जीत गया!',
   itsATie: 'बराबरी है!',
   playAgain: 'फिर से खेलो',
@@ -397,7 +493,7 @@ const hi: UIStrings = {
   antonymName: 'विपरीत जोड़ी',
   antonymSub: 'उल्टे शब्द मिलाओ',
   antonymPrompt: 'मिलती जोड़ी ढूंढो',
-  correctFeedback: 'सही! 🎉',
+  correctFeedback: 'Great!',
   tryAgainFeedback: 'फिर से कोशिश करो',
   scoreLabel: (n) => `⭐ ${n}`,
   roundLabel: (n, total) => `${n} / ${total}`,
@@ -423,7 +519,56 @@ const hi: UIStrings = {
   traceModeCursive: '𝒜 𝒷 𝒬',
   traceModeHiLetters: 'अ आ इ',
   traceModeHiWords: 'आम',
-  badgesTitle: '🏅 बैज'
+  traceCheck: '✓ अक्षर जांचो',
+  traceNeedMore: 'अक्षर को थोड़ा और बनाओ, फिर जांचो।',
+  tracePassed: 'Great!',
+  badgesTitle: '🏅 बैज',
+  worldTitle: 'मेरी सीखने की दुनिया',
+  activityCount: 'रोमांचक गतिविधियां',
+  lastPlayed: 'आखिरी खेल',
+  parentArea: 'माता-पिता',
+  parentPrompt: 'केवल बड़ों के लिए: 14 + 7 कितना है?',
+  parentTryAgain: 'किसी बड़े के साथ फिर कोशिश करें।',
+  parentContinue: 'आगे बढ़ें',
+  parentSummary: 'सीखने की झलक',
+  languageHeading: 'अपनी भाषा चुनें',
+  languageDescription: 'अपने बच्चे के लिए भाषा चुनें।',
+  next: 'आगे →',
+  splashTagline: 'शब्द सीखो। नई दुनिया खोजो।',
+  letsPlay: 'चलो खेलें',
+  forParents: 'माता-पिता के लिए',
+  homeGreeting: 'नमस्ते, छोटे खोजी!',
+  homeSub: 'चलो शब्दों का रोमांच शुरू करें!',
+  chooseAdventure: 'अपना रोमांच चुनो',
+  exploreActivities: 'सभी खेल देखें',
+  readingName: 'पढ़ो और खोजो',
+  profileTitle: 'मेरी प्रोफ़ाइल',
+  changeAvatar: 'अवतार बदलें',
+  chooseAvatar: 'अपना अवतार चुनें',
+  levels: 'स्तर',
+  totalStars: 'कुल सितारे',
+  points: 'अंक',
+  wordsFound: 'मिले हुए शब्द',
+  rewardsTitle: 'मेरे पुरस्कार 🎁',
+  stickers: 'स्टिकर',
+  playForRewards: 'और पाने के लिए पहेलियां और छोटे खेल खेलो!',
+  stickerComingSoon: 'स्टिकर संग्रह जल्द आएगा।',
+  barahkhadiUnavailable: 'बारहखड़ी केवल हिंदी भाषा में उपलब्ध है।',
+  earned: 'तुमने कमाए',
+  levelComplete: 'स्तर पूरा!',
+  wordMeaning: 'शब्द का अर्थ',
+  noWordsYet: 'अभी कोई शब्द नहीं — जाओ ढूंढो!',
+  backHome: '← घर चलो',
+  previous: 'पिछला',
+  speakWord: (word) => `${word} बोलो`,
+  versus: 'बनाम',
+  tour: 'परिचय',
+  close: 'बंद करो',
+  back: 'पीछे',
+  backAgainToExit: 'बाहर जाने के लिए फिर से बैक दबाएँ',
+  toggleMusic: 'संगीत चालू या बंद करें',
+  settings: 'सेटिंग',
+  hiddenCard: 'छुपा हुआ कार्ड'
 };
 
 const DICT: Record<Language, UIStrings> = { en, hi };

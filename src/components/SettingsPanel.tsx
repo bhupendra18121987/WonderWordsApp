@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#6d28d9'
+    color: '#0c615d'
   },
   closeBtn: {
     width: 36,
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   contentInner: { padding: 16, gap: 14 },
 
   group: { gap: 8 },
-  groupTitle: { fontSize: 15, fontWeight: '800', color: '#6d28d9' },
+  groupTitle: { fontSize: 15, fontWeight: '800', color: '#0c615d' },
 
   langRow: {
     flexDirection: 'row',
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   langBtnActive: {
-    backgroundColor: '#7c3aed'
+    backgroundColor: '#147d78'
   },
   langBtnText: { fontWeight: '800', color: '#1e1b4b', fontSize: 15 },
   langBtnTextActive: { color: '#fff' },
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     minHeight: 40
   },
-  footerBtnPrimary: { backgroundColor: '#7c3aed' },
+  footerBtnPrimary: { backgroundColor: '#147d78' },
   footerBtnPrimaryText: { color: '#fff', fontWeight: '800', fontSize: 14 },
   footerBtnGhost: { backgroundColor: '#ffffff', borderWidth: 2, borderColor: '#e5e5f0' },
   footerBtnGhostText: { color: '#1e1b4b', fontWeight: '800', fontSize: 12 },

@@ -66,14 +66,14 @@ export default function AgeSelect({
 
   return (
     <LinearGradient
-      colors={['#8a4ff0', '#6b2fd5']}
+      colors={['#147d78', '#0c615d']}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={[styles.screen, { paddingTop: insets.top + 12 }]}
     >
       {onBack ? (
         <View style={styles.backWrap}>
-          <BackButton onPress={onBack} variant="light" />
+          <BackButton onPress={onBack} variant="light" label={isHi ? 'पीछे' : 'Back'} />
         </View>
       ) : null}
 

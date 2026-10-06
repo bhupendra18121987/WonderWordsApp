@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#6d28d9',
+    color: '#0c615d',
     textAlign: 'center'
   },
   message: {
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     minHeight: 44
   },
-  btnPrimary: { backgroundColor: '#7c3aed' },
+  btnPrimary: { backgroundColor: '#147d78' },
   btnDanger: { backgroundColor: '#ffcf5c' },
   btnPrimaryText: { color: '#fff', fontWeight: '800', fontSize: 15 },
   btnGhost: { backgroundColor: '#ffffff', borderWidth: 2, borderColor: '#e5e5f0' },

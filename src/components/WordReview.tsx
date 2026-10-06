@@ -11,6 +11,7 @@ import {
 } from './WordMeaningAssets';
 import type { Language, LearnedWord } from '../core/types';
 import { radii, shadow } from '../core/theme';
+import { t } from '../core/i18n';
 
 interface WordReviewProps {
   learnedWords: LearnedWord[];
@@ -33,6 +34,7 @@ export default function WordReview({
   onSpeak
 }: WordReviewProps) {
   const insets = useSafeAreaInsets();
+  const strings = t(language);
   const [index, setIndex] = useState(0);
   const items = useMemo(() => learnedWords, [learnedWords]);
   const count = items.length;
@@ -46,14 +48,14 @@ export default function WordReview({
 
   return (
     <LinearGradient
-      colors={['#8a4ff0', '#6b2fd5']}
+      colors={['#147d78', '#0c615d']}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={[styles.screen, { paddingTop: insets.top + 12, paddingBottom: 24 + insets.bottom }]}
     >
       <View style={styles.topbar}>
-        <BackButton onPress={onBack} variant="light" />
-        <Text style={styles.topTitle}>{isHi ? 'शब्द का अर्थ' : 'Word Meaning'}</Text>
+        <BackButton onPress={onBack} variant="light" label={strings.back} />
+        <Text style={styles.topTitle}>{strings.wordMeaning}</Text>
         <View style={{ width: 44 }} />
       </View>
 
@@ -61,10 +63,10 @@ export default function WordReview({
         <View style={styles.empty}>
           <Text style={styles.emptyEmoji}>📚</Text>
           <Text style={styles.emptyText}>
-            {isHi ? 'अभी कोई शब्द नहीं — जाओ ढूंढो!' : 'No words yet — go find some!'}
+            {isHi ? 'अभी कोई शब्द नहीं — जाओ ढूंढो!' : strings.noWordsYet}
           </Text>
           <Pressable onPress={onBack} style={styles.emptyBtn}>
-            <Text style={styles.emptyBtnText}>{isHi ? '← घर' : '← Back home'}</Text>
+            <Text style={styles.emptyBtnText}>{isHi ? `← ${strings.navHome}` : strings.backHome}</Text>
           </Pressable>
         </View>
       ) : (
@@ -79,7 +81,7 @@ export default function WordReview({
               onPress={() => onSpeak(current)}
               style={({ pressed }) => [styles.audioBtn, pressed && { transform: [{ scale: 0.95 }] }]}
               accessibilityRole="button"
-              accessibilityLabel={`Speak ${current.word}`}
+              accessibilityLabel={strings.speakWord(current.word)}
             >
               <AudioIcon size={22} />
             </Pressable>
@@ -96,7 +98,7 @@ export default function WordReview({
               onPress={() => setIndex((i) => (i - 1 + count) % count)}
               style={({ pressed }) => [styles.navBtn, pressed && { transform: [{ scale: 0.94 }] }]}
               accessibilityRole="button"
-              accessibilityLabel="Previous"
+              accessibilityLabel={strings.previous}
             >
               <ChevronIcon dir="left" size={22} />
             </Pressable>
@@ -120,7 +122,7 @@ export default function WordReview({
               onPress={() => setIndex((i) => (i + 1) % count)}
               style={({ pressed }) => [styles.navBtn, pressed && { transform: [{ scale: 0.94 }] }]}
               accessibilityRole="button"
-              accessibilityLabel="Next"
+              accessibilityLabel={strings.next.replace(' →', '')}
             >
               <ChevronIcon dir="right" size={22} />
             </Pressable>
@@ -153,7 +155,7 @@ const styles = StyleSheet.create({
   word: { fontSize: 34, fontWeight: '900', letterSpacing: 1 },
   audioBtn: {
     width: 48, height: 48, borderRadius: 24,
-    backgroundColor: '#7c3aed',
+    backgroundColor: '#147d78',
     alignItems: 'center', justifyContent: 'center',
     ...shadow.soft
   },

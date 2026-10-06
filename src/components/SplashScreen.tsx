@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, radii } from '../core/theme';
+import { t } from '../core/i18n';
+import type { Language } from '../core/types';
 import {
   MusicNoteIcon,
   PlayArrowIcon,
@@ -22,15 +24,17 @@ interface SplashScreenProps {
   ready?: boolean;
   onOpenParents?: () => void;
   onToggleSound?: () => void;
+  language?: Language;
 }
 
 /**
  * Illustrated splash screen. Full-scene backdrop with sky, rainbow, hills,
  * house, panda mascot in a purple hoodie, and two CTAs.
  */
-export default function SplashScreen({ onStart, ready = true, onOpenParents, onToggleSound }: SplashScreenProps) {
+export default function SplashScreen({ onStart, ready = true, onOpenParents, onToggleSound, language = 'en' }: SplashScreenProps) {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const strings = t(language);
   const mascotY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -52,7 +56,7 @@ export default function SplashScreen({ onStart, ready = true, onOpenParents, onT
         <Pressable
           onPress={onToggleSound}
           accessibilityRole="button"
-          accessibilityLabel="Toggle music"
+          accessibilityLabel={strings.toggleMusic}
           style={({ pressed }) => [
             styles.musicBtn,
             { top: insets.top + 16 },
@@ -65,7 +69,7 @@ export default function SplashScreen({ onStart, ready = true, onOpenParents, onT
 
       <View style={[styles.titleWrap, { marginTop: insets.top + 40 }]}>
         <Text style={styles.title}>WonderWords</Text>
-        <Text style={styles.tagline}>Learn Words. Discover Worlds.</Text>
+        <Text style={styles.tagline}>{strings.splashTagline}</Text>
       </View>
 
       <Animated.View style={[styles.mascot, { transform: [{ translateY: mascotY }] }]}>
@@ -77,14 +81,14 @@ export default function SplashScreen({ onStart, ready = true, onOpenParents, onT
           disabled={!ready}
           onPress={onStart}
           accessibilityRole="button"
-          accessibilityLabel="Let's Play"
+          accessibilityLabel={strings.letsPlay}
           style={({ pressed }) => [
             styles.playBtn,
             !ready && styles.playBtnDisabled,
             pressed && styles.playBtnPressed
           ]}
         >
-          <Text style={styles.playText}>Let's Play</Text>
+          <Text style={styles.playText}>{strings.letsPlay}</Text>
           <View style={styles.playArrow}>
             <PlayArrowIcon size={14} />
           </View>
@@ -94,10 +98,10 @@ export default function SplashScreen({ onStart, ready = true, onOpenParents, onT
           <Pressable
             onPress={onOpenParents}
             accessibilityRole="button"
-            accessibilityLabel="For Parents"
+            accessibilityLabel={strings.forParents}
             style={({ pressed }) => [styles.parentsBtn, pressed && styles.parentsBtnPressed]}
           >
-            <Text style={styles.parentsText}>For Parents</Text>
+            <Text style={styles.parentsText}>{strings.forParents}</Text>
           </Pressable>
         ) : null}
       </View>
@@ -113,11 +117,11 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: radii.pill,
-    backgroundColor: '#7c3aed',
+    backgroundColor: '#147d78',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 5,
-    shadowColor: '#4c1d95',
+    shadowColor: '#174d4c',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.35,
     shadowRadius: 10,

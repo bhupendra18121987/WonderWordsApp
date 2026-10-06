@@ -30,6 +30,7 @@ interface TicTacToeGameProps {
 }
 
 const DIFFICULTY_BY_AGE: Record<AgeGroupKey, Difficulty> = {
+  '2-3': 'easy',
   '3-4': 'easy',
   '5-6': 'medium',
   '7-8': 'hard'
@@ -51,6 +52,7 @@ export default function TicTacToeGame({
   const [result, setResult] = useState<{ outcome: 'win' | 'lose' | 'tie'; line?: readonly [number, number, number] } | null>(null);
   const [playerStarts, setPlayerStarts] = useState(true);
   const aiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const turnLockRef = useRef(false);
   const praiseRef = useRef<string>('');
 
   const [playerToken, owlToken] = TOKEN_PAIRS[pairIndex]!;
@@ -83,7 +85,8 @@ export default function TicTacToeGame({
   }, [language, speakText, onSetMascotMessage, strings]);
 
   const handleCellTap = (idx: number) => {
-    if (result || turn !== 1 || board[idx] !== 0) return;
+    if (turnLockRef.current || result || turn !== 1 || board[idx] !== 0) return;
+    turnLockRef.current = true;
     const next = board.slice();
     next[idx] = 1;
     setBoard(next);
@@ -102,7 +105,10 @@ export default function TicTacToeGame({
       next[move] = -1;
       setBoard(next);
       speakText(owlLabel);
-      if (!finish(next)) setTurn(1);
+      if (!finish(next)) {
+        turnLockRef.current = false;
+        setTurn(1);
+      }
     }, 700);
     return () => {
       if (aiTimerRef.current) {
@@ -126,12 +132,14 @@ export default function TicTacToeGame({
     setResult(null);
     setPairIndex((prev) => randomTokenPairIndex(prev));
     const nextPlayerStarts = !playerStarts;
+    turnLockRef.current = !nextPlayerStarts;
     setPlayerStarts(nextPlayerStarts);
     setTurn(nextPlayerStarts ? 1 : -1);
   };
 
   return (
-    <ThemedScreen title={strings.ticTacToeName} onBack={onExit} scroll={false}>
+    <ThemedScreen title={strings.ticTacToeName} language={language} onBack={onExit} scroll={false}>
+      <View style={styles.centered}>
       <View style={styles.header}>
         <TokenBadge
           who={strings.you}
@@ -140,7 +148,7 @@ export default function TicTacToeGame({
           active={turn === 1 && !result}
           tone="player"
         />
-        <Text style={styles.vs}>VS</Text>
+        <Text style={styles.vs}>{strings.versus}</Text>
         <TokenBadge
           who={strings.owl}
           token={owlToken}
@@ -220,6 +228,7 @@ export default function TicTacToeGame({
         onNext={startNewGame}
         onHome={onExit}
       />
+      </View>
     </ThemedScreen>
   );
 }
@@ -258,6 +267,10 @@ const styles = StyleSheet.create({
     gap: 16,
     alignItems: 'center'
   },
+  centered: {
+    alignItems: 'center',
+    gap: 16
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -283,7 +296,7 @@ const styles = StyleSheet.create({
   },
   badgePlayerActive: {
     backgroundColor: '#ede9fe',
-    borderColor: '#7c3aed'
+    borderColor: '#147d78'
   },
   badgeOwlActive: {
     backgroundColor: '#e5f2ff',
@@ -378,7 +391,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   },
-  btnPrimary: { backgroundColor: '#7c3aed' },
+  btnPrimary: { backgroundColor: '#147d78' },
   btnPrimaryText: { color: '#fff', fontWeight: '800', fontSize: 16 },
   btnGhost: { backgroundColor: '#ffffff', borderWidth: 2, borderColor: '#e5e5f0' },
   btnGhostText: { color: '#1e1b4b', fontWeight: '800', fontSize: 14 }

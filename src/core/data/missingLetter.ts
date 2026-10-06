@@ -6,7 +6,7 @@ import type { AgeGroupKey, Language, WordEntry } from '../types';
 import { getWordsData } from '../data';
 import { LANGUAGE_CONFIG } from '../languages';
 import { splitGraphemes } from '../grapheme';
-import { buildChoices, pickOne } from '../miniGames';
+import { buildChoices, pickOne, shuffleInPlace } from '../miniGames';
 
 export interface MissingLetterPuzzle {
   word: WordEntry;
@@ -37,10 +37,10 @@ export function generateMissingLetter(
   );
   if (allWords.length === 0) return null;
 
-  // Try up to N random words; each must have at least one grapheme that is
-  // a member of the alphabet (so distractors and answer share the same pool).
-  const shuffledWords = [...allWords].sort(() => Math.random() - 0.5);
-  for (const word of shuffledWords.slice(0, 20)) {
+  // Search the shuffled age pool until we find a word whose graphemes and
+  // distractor alphabet use the same units.
+  const shuffledWords = shuffleInPlace([...allWords]);
+  for (const word of shuffledWords) {
     const graphemes = splitGraphemes(word.word);
     if (graphemes.length < 2) continue;
 

@@ -1,9 +1,11 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { Language } from '../core/types';
 import { t } from '../core/i18n';
 import { colors, radii, shadow } from '../core/theme';
+import ThemedScreen from './ThemedScreen';
 import PandaIllustration from './PandaIllustration';
+import { adventureInfo, type AdventureId } from '../core/adventures';
 
 export type MiniGameId =
   | 'letterHunt'
@@ -13,7 +15,8 @@ export type MiniGameId =
   | 'karaoke'
   | 'twoPlayer'
   | 'trace'
-  | 'tictactoe';
+  | 'tictactoe'
+  | AdventureId;
 
 interface MiniGamesHubProps {
   language: Language;
@@ -23,188 +26,168 @@ interface MiniGamesHubProps {
   lastPlayed?: MiniGameId | null;
 }
 
+type Tint = 'coral' | 'teal' | 'mint' | 'lavender' | 'yellow';
+
 interface TileDef {
   id: MiniGameId;
   emoji: string;
-  color: string;
-  nameKey: 'letterHuntName' | 'tapColorName' | 'missingLetterName' | 'antonymName' | 'karaokeName' | 'twoPlayerName' | 'traceName' | 'ticTacToeName';
-  subKey: 'letterHuntSub' | 'tapColorSub' | 'missingLetterSub' | 'antonymSub' | 'karaokeSub' | 'twoPlayerSub' | 'traceSub' | 'ticTacToeSub';
+  tint: Tint;
+  nameKey?:
+    | 'letterHuntName' | 'tapColorName' | 'missingLetterName' | 'antonymName'
+    | 'karaokeName' | 'twoPlayerName' | 'traceName' | 'ticTacToeName';
+  adventureId?: AdventureId;
 }
 
 const TILES: TileDef[] = [
-  { id: 'letterHunt', emoji: '🔤', color: '#ffd6e0', nameKey: 'letterHuntName', subKey: 'letterHuntSub' },
-  { id: 'tapColor', emoji: '🎨', color: '#d6ecff', nameKey: 'tapColorName', subKey: 'tapColorSub' },
-  { id: 'missingLetter', emoji: '✏️', color: '#d6ffe0', nameKey: 'missingLetterName', subKey: 'missingLetterSub' },
-  { id: 'antonymPairs', emoji: '🔁', color: '#f0d6ff', nameKey: 'antonymName', subKey: 'antonymSub' },
-  { id: 'karaoke', emoji: '🎤', color: '#fef3c7', nameKey: 'karaokeName', subKey: 'karaokeSub' },
-  { id: 'twoPlayer', emoji: '🤝', color: '#fed7aa', nameKey: 'twoPlayerName', subKey: 'twoPlayerSub' },
-  { id: 'trace', emoji: '✍️', color: '#a7f3d0', nameKey: 'traceName', subKey: 'traceSub' },
-  { id: 'tictactoe', emoji: '⭕', color: '#ffd6e0', nameKey: 'ticTacToeName', subKey: 'ticTacToeSub' }
+  { id: 'letterHunt',    emoji: '🔤', tint: 'coral',    nameKey: 'letterHuntName' },
+  { id: 'tapColor',      emoji: '🎨', tint: 'teal',     nameKey: 'tapColorName' },
+  { id: 'missingLetter', emoji: '✏️', tint: 'mint',     nameKey: 'missingLetterName' },
+  { id: 'antonymPairs',  emoji: '🔁', tint: 'lavender', nameKey: 'antonymName' },
+  { id: 'karaoke',       emoji: '🎤', tint: 'yellow',   nameKey: 'karaokeName' },
+  { id: 'twoPlayer',     emoji: '🤝', tint: 'yellow',   nameKey: 'twoPlayerName' },
+  { id: 'trace',         emoji: '✍️', tint: 'mint',     nameKey: 'traceName' },
+  { id: 'tictactoe',     emoji: '⭕', tint: 'coral',    nameKey: 'ticTacToeName' },
+  { id: 'counting',      emoji: '🍎', tint: 'coral',    adventureId: 'counting' },
+  { id: 'numbers',       emoji: '🔢', tint: 'teal',     adventureId: 'numbers' },
+  { id: 'patterns',      emoji: '🧩', tint: 'lavender', adventureId: 'patterns' },
+  { id: 'memory',        emoji: '🧠', tint: 'yellow',   adventureId: 'memory' },
+  { id: 'animals',       emoji: '🐾', tint: 'mint',     adventureId: 'animals' },
+  { id: 'story',         emoji: '📖', tint: 'coral',    adventureId: 'story' },
+  { id: 'drawing',       emoji: '🎨', tint: 'teal',     adventureId: 'drawing' }
 ];
+
+const TINTS: Record<Tint, { bg: [string, string]; border: string }> = {
+  coral:    { bg: ['#ffe4ec', '#ffc2d1'], border: 'rgba(217, 90, 131, 0.35)' },
+  teal:     { bg: ['#d5f3f1', '#a0e7e5'], border: 'rgba(47, 122, 118, 0.35)' },
+  mint:     { bg: ['#d5f0d8', '#a8ecc1'], border: 'rgba(61, 122, 83, 0.35)' },
+  lavender: { bg: ['#ece1ff', '#d1b8ff'], border: 'rgba(92, 66, 144, 0.35)' },
+  yellow:   { bg: ['#fff2c8', '#ffe38b'], border: 'rgba(197, 148, 20, 0.35)' }
+};
 
 export default function MiniGamesHub({ language, onBack, onPick, enabled, lastPlayed }: MiniGamesHubProps) {
   const strings = t(language);
 
   return (
-    <ScrollView style={styles.root} contentContainerStyle={styles.content}>
-      <LinearGradient
-        colors={[colors.primaryLight, colors.primary]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.hero}
-      >
-        <View style={{ flex: 1 }}>
-          <Text style={styles.title}>{strings.miniGamesTitle}</Text>
-          <Text style={styles.subtitle}>{strings.miniGamesSubtitle}</Text>
-        </View>
-        <PandaIllustration size={90} />
-      </LinearGradient>
-
-      <View style={styles.pathWrap}>
-        <View style={styles.pathLine} />
-        {TILES.map((tile, idx) => {
+    <ThemedScreen
+      title={strings.worldTitle}
+      language={language}
+      titleIcon={<PandaIllustration size={28} />}
+      onBack={onBack}
+    >
+      <View style={styles.grid}>
+        {TILES.map((tile) => {
           const isOn = enabled[tile.id];
           const isLast = lastPlayed === tile.id;
-          const rightSide = idx % 2 === 1;
+          const tint = TINTS[tile.tint];
+          const info = tile.adventureId ? adventureInfo(tile.adventureId, language) : null;
+          const name = info?.name ?? strings[tile.nameKey!];
           return (
-            <View key={tile.id} style={[styles.nodeRow, rightSide && styles.nodeRowRight]}>
+            <Pressable
+              key={tile.id}
+              onPress={() => isOn && onPick(tile.id)}
+              disabled={!isOn}
+              style={({ pressed }) => [
+                styles.card,
+                { borderColor: tint.border },
+                !isOn && styles.cardOff,
+                isLast && styles.cardLast,
+                pressed && isOn && { transform: [{ translateY: -2 }] }
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel={name}
+            >
+              <LinearGradient
+                colors={tint.bg}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={StyleSheet.absoluteFill}
+              />
               <View style={[styles.dot, isOn ? styles.dotOn : styles.dotOff]} />
-              <Pressable
-                style={({ pressed }) => [
-                  styles.tile,
-                  { backgroundColor: tile.color },
-                  rightSide ? styles.tileRight : styles.tileLeft,
-                  !isOn && styles.tileOff,
-                  isLast && styles.tileLast,
-                  pressed && isOn && { transform: [{ scale: 0.97 }] }
-                ]}
-                onPress={() => isOn && onPick(tile.id)}
-                disabled={!isOn}
-              >
-                <Text style={styles.tileEmoji}>{tile.emoji}</Text>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.tileName}>{strings[tile.nameKey]}</Text>
-                  <Text style={styles.tileSub}>{isOn ? strings[tile.subKey] : strings.comingSoon}</Text>
+              {isLast ? (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{strings.lastPlayed}</Text>
                 </View>
-                {isLast && <Text style={styles.badge}>LAST</Text>}
-                {!isOn && <Text style={styles.badgeMuted}>{strings.comingSoon}</Text>}
-              </Pressable>
-            </View>
+              ) : null}
+              {!isOn ? (
+                <View style={[styles.badge, styles.badgeMuted]}>
+                  <Text style={styles.badgeText}>{strings.comingSoon}</Text>
+                </View>
+              ) : null}
+              <Text style={styles.emoji}>{tile.emoji}</Text>
+              <Text style={styles.name} numberOfLines={2}>
+                {name}
+              </Text>
+              {info && <Text style={styles.subtitle} numberOfLines={2}>{info.subtitle}</Text>}
+            </Pressable>
           );
         })}
       </View>
-
-      <Pressable style={styles.back} onPress={onBack}>
-        <Text style={styles.backText}>← {strings.home}</Text>
-      </Pressable>
-    </ScrollView>
+    </ThemedScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: 16, paddingTop: 80, paddingBottom: 130 },
-  hero: {
-    borderRadius: radii.lg,
-    padding: 16,
-    minHeight: 120,
+  grid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    justifyContent: 'space-between'
+  },
+  card: {
+    width: '48%',
+    minHeight: 108,
+    borderRadius: 16,
+    borderWidth: 2,
+    padding: 10,
     alignItems: 'center',
-    ...shadow.card
+    justifyContent: 'center',
+    gap: 4,
+    overflow: 'hidden',
+    ...shadow.soft
   },
-  title: { fontSize: 28, fontWeight: '900', color: colors.accent },
-  subtitle: { marginTop: 2, fontSize: 13, fontWeight: '700', color: colors.onPrimary },
-
-  pathWrap: {
-    marginTop: 16,
-    position: 'relative',
-    gap: 8,
-    paddingVertical: 8
+  cardOff: { opacity: 0.56 },
+  cardLast: {
+    borderColor: colors.accentDark,
+    shadowColor: colors.accentDark,
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 6
   },
-  pathLine: {
-    position: 'absolute',
-    top: 10,
-    bottom: 10,
-    left: 18,
-    width: 4,
-    borderRadius: 999,
-    backgroundColor: '#d7cdf9'
+  emoji: { fontSize: 30, lineHeight: 34 },
+  name: {
+    fontSize: 12.5,
+    fontWeight: '900',
+    color: colors.ink,
+    lineHeight: 19,
+    textAlign: 'center'
   },
-  nodeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: 88
-  },
-  nodeRowRight: {
-    justifyContent: 'flex-end'
-  },
+  subtitle: { fontSize: 10.5, fontWeight: '700', color: '#655c7d', textAlign: 'center' },
   dot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    marginHorizontal: 11,
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     zIndex: 2
   },
   dotOn: { backgroundColor: colors.success },
-  dotOff: { backgroundColor: colors.border },
-
-  tile: {
-    flex: 1,
-    maxWidth: '88%',
-    minHeight: 82,
-    borderRadius: radii.md,
-    padding: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    borderWidth: 2,
-    borderColor: 'rgba(124,58,237,0.12)',
-    ...shadow.soft
-  },
-  tileLeft: { marginRight: 8 },
-  tileRight: { marginLeft: 8 },
-  tileOff: { opacity: 0.56 },
-  tileLast: {
-    borderColor: colors.accentDark,
-    shadowColor: colors.accentDark,
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 8
-  },
-  tileEmoji: { fontSize: 30 },
-  tileName: { fontSize: 15, fontWeight: '900', color: colors.ink },
-  tileSub: { fontSize: 12, fontWeight: '700', color: colors.inkSoft, marginTop: 1 },
+  dotOff: { backgroundColor: '#d6d6df' },
   badge: {
-    alignSelf: 'flex-start',
-    fontSize: 10,
-    fontWeight: '900',
-    color: colors.onAccent,
+    position: 'absolute',
+    top: 6,
+    left: 6,
     backgroundColor: colors.accentDark,
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: radii.pill,
-    overflow: 'hidden'
+    zIndex: 2
   },
-  badgeMuted: {
-    alignSelf: 'flex-start',
-    fontSize: 10,
+  badgeMuted: { backgroundColor: '#8b7ea8' },
+  badgeText: {
+    fontSize: 9,
     fontWeight: '900',
-    color: '#ffffff',
-    backgroundColor: '#8b7ea8',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: radii.pill,
-    overflow: 'hidden'
-  },
-  back: {
-    marginTop: 18,
-    alignSelf: 'center',
-    paddingHorizontal: 22,
-    paddingVertical: 11,
-    borderRadius: radii.pill,
-    backgroundColor: colors.paper,
-    borderWidth: 2,
-    borderColor: colors.border
-  },
-  backText: { fontWeight: '900', color: colors.ink }
+    color: '#fff',
+    letterSpacing: 0.4
+  }
 });

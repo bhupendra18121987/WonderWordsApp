@@ -12,6 +12,7 @@ import Grid from './Grid';
 import WordList from './WordList';
 import WordReveal from './WordReveal';
 import Celebration from './Celebration';
+import MiniConfetti from './MiniConfetti';
 import BackButton from './BackButton';
 import {
   ClockIcon,
@@ -31,6 +32,7 @@ import {
   pickPraise,
   progressAfterPuzzle
 } from '../core/gameLogic';
+import { triggerHaptic } from '../core/haptics';
 import { radii, shadow } from '../core/theme';
 import type {
   AgeGroupKey,
@@ -46,6 +48,7 @@ interface WordSearchGameProps {
   ageGroup: AgeGroupKey;
   level: number;
   language: Language;
+  sound: boolean;
   progress: Progress;
   onProgressUpdate: (next: Progress) => void;
   onExit: () => void;
@@ -53,13 +56,13 @@ interface WordSearchGameProps {
   speakText: (text: string) => void;
 }
 
-const REVEAL_HOLD_MS = 10000;
 const MAX_HINTS = 3;
 
 export default function WordSearchGame({
   ageGroup,
   level,
   language,
+  sound,
   progress,
   onProgressUpdate,
   onExit,
@@ -98,6 +101,7 @@ export default function WordSearchGame({
   }, [ageGroup, activeLevel, seed, language]);
 
   const [foundWords, setFoundWords] = useState<FoundWord[]>([]);
+  const [burstCount, setBurstCount] = useState(0);
   const [wrongCells, setWrongCells] = useState<Cell[]>([]);
   const [hintCells, setHintCells] = useState<Cell[]>([]);
   const [reveal, setReveal] = useState<{
@@ -115,17 +119,13 @@ export default function WordSearchGame({
   const [elapsed, setElapsed] = useState(0);
   const startTimeRef = useRef<number>(Date.now());
   const streakRef = useRef(0);
-  const completingRef = useRef(false);
-  const completionPraiseRef = useRef('');
-  const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const finalWordPendingRef = useRef(false);
+  const celebrationShownRef = useRef(false);
+  const completionSnapshotRef = useRef<{ wordsFound: number; stars: 1 | 2 | 3; praise: string } | null>(null);
 
   const gridWidth = Math.min(width - 32, 380);
 
   useEffect(() => {
-    if (completionTimerRef.current) {
-      clearTimeout(completionTimerRef.current);
-      completionTimerRef.current = null;
-    }
     setFoundWords([]);
     setWrongCells([]);
     setHintCells([]);
@@ -136,8 +136,9 @@ export default function WordSearchGame({
     setElapsed(0);
     startTimeRef.current = Date.now();
     streakRef.current = 0;
-    completingRef.current = false;
-    completionPraiseRef.current = '';
+    finalWordPendingRef.current = false;
+    celebrationShownRef.current = false;
+    completionSnapshotRef.current = null;
   }, [puzzle]);
 
   useEffect(() => {
@@ -148,9 +149,27 @@ export default function WordSearchGame({
     return () => clearInterval(id);
   }, [completion, puzzle]);
 
-  useEffect(() => () => {
-    if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
-  }, []);
+  const lastActiveTimeRef = useRef<number>(Date.now());
+  useEffect(() => {
+    lastActiveTimeRef.current = Date.now();
+  }, [foundWords, mistakes, hintsUsed]);
+
+  // Idle Hint Pulse: if the child doesn't interact for 12s, gently pulse the first letter of an unfound word
+  useEffect(() => {
+    if (completion || reveal) return;
+    const interval = setInterval(() => {
+      const idle = (Date.now() - lastActiveTimeRef.current) / 1000;
+      if (idle >= 12 && hintCells.length === 0) {
+        const remaining = puzzle.placements.filter((p) => !foundWordStrings.includes(p.word));
+        if (remaining.length > 0 && remaining[0]?.cells[0]) {
+          setHintCells([remaining[0].cells[0]]);
+          setTimeout(() => setHintCells([]), 3200);
+          lastActiveTimeRef.current = Date.now();
+        }
+      }
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [completion, reveal, puzzle.placements, foundWordStrings, hintCells.length]);
 
   const allFoundCells = useMemo(
     () => foundWords.flatMap((f) => f.cells),
@@ -192,8 +211,11 @@ export default function WordSearchGame({
       });
 
       if (target) {
+        triggerHaptic('match');
+        setBurstCount((count) => count + 1);
         const item = puzzle.items.find((w) => w.word === target.word);
         streakRef.current += 1;
+        if (foundWordStrings.length + 1 === puzzle.items.length) finalWordPendingRef.current = true;
         // Note: don't speak the word here — the WordReveal modal that
         // opens next auto-speaks it, so speaking again would double up.
         setFoundWords((prev) => [
@@ -213,38 +235,42 @@ export default function WordSearchGame({
 
   useEffect(() => {
     if (
-      completingRef.current ||
+      !finalWordPendingRef.current ||
       puzzle.items.length === 0 ||
       foundWords.length !== puzzle.items.length ||
       completion !== null
     ) {
       return;
     }
-    completingRef.current = true;
-    const stars = computeStars(mistakes, hintsUsed);
-    const wordsFound = foundWords.length;
-    const praise = pickPraise(language);
-    completionPraiseRef.current = praise;
-    const foundMeta: WordEntry[] = foundWords
-      .map((f) => f.meta)
-      .filter((m): m is WordEntry => Boolean(m));
-    const next = progressAfterPuzzle({
-      current: progress,
-      level: activeLevel,
-      stars,
-      foundWords: foundMeta,
-      currentStreak: streakRef.current
-    });
-    onProgressUpdate(next);
-    completionTimerRef.current = setTimeout(() => {
-      completionTimerRef.current = null;
-      setReveal(null);
-      speakText(praise);
-      setCompletion({ wordsFound, stars, praise });
-    }, REVEAL_HOLD_MS);
+    if (!completionSnapshotRef.current) {
+      const snapshot = {
+        wordsFound: foundWords.length,
+        stars: computeStars(mistakes, hintsUsed),
+        praise: pickPraise(language)
+      } as const;
+      completionSnapshotRef.current = snapshot;
+      const foundMeta: WordEntry[] = foundWords
+        .map((f) => f.meta)
+        .filter((m): m is WordEntry => Boolean(m));
+      onProgressUpdate(progressAfterPuzzle({
+        current: progress,
+        level: activeLevel,
+        stars: snapshot.stars,
+        foundWords: foundMeta,
+        currentStreak: streakRef.current
+      }));
+    }
+    if (!reveal && !celebrationShownRef.current && completionSnapshotRef.current) {
+      celebrationShownRef.current = true;
+      finalWordPendingRef.current = false;
+      triggerHaptic('celebrate');
+      speakText(completionSnapshotRef.current.praise);
+      setCompletion(completionSnapshotRef.current);
+    }
     void pickEncouragement;
   }, [
     foundWords,
+    reveal,
     puzzle.items.length,
     completion,
     mistakes,
@@ -289,28 +315,17 @@ export default function WordSearchGame({
 
   const finishRevealEarly = () => {
     setReveal(null);
-    if (completingRef.current && completionTimerRef.current) {
-      clearTimeout(completionTimerRef.current);
-      completionTimerRef.current = null;
-      const stars = computeStars(mistakes, hintsUsed);
-      speakText(completionPraiseRef.current);
-      setCompletion({
-        wordsFound: foundWords.length,
-        stars,
-        praise: completionPraiseRef.current
-      });
-    }
   };
 
   return (
     <LinearGradient
-      colors={['#8a4ff0', '#6b2fd5']}
+      colors={['#147d78', '#0c615d']}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={[styles.screen, { paddingTop: insets.top + 12, paddingBottom: 120 + insets.bottom }]}
     >
       <View style={styles.topbar}>
-        <BackButton onPress={onExit} variant="light" />
+        <BackButton onPress={onExit} variant="light" label={strings.back} />
         <View style={styles.chip}>
           <ClockIcon size={14} />
           <Text style={styles.chipText}>{timerLabel}</Text>
@@ -373,11 +388,13 @@ export default function WordSearchGame({
       <WordReveal
         word={reveal}
         language={language}
+        sound={sound}
         onClose={finishRevealEarly}
       />
 
       <Celebration
         visible={!!completion}
+        language={language}
         praise={completion?.praise ?? ''}
         wordsFound={completion?.wordsFound}
         stars={completion?.stars ?? 3}
@@ -386,6 +403,7 @@ export default function WordSearchGame({
         onNext={() => { setCompletion(null); nextLevel(); }}
         onHome={() => { setCompletion(null); onExit(); }}
       />
+      <MiniConfetti trigger={burstCount} />
     </LinearGradient>
   );
 }
@@ -419,14 +437,14 @@ const styles = StyleSheet.create({
     gap: 10,
     ...shadow.card
   },
-  cardTitle: { fontSize: 16, fontWeight: '900', color: '#5b21b6', textAlign: 'center' },
+  cardTitle: { fontSize: 16, fontWeight: '900', color: '#0c615d', textAlign: 'center' },
   progressBar: {
     height: 10,
     backgroundColor: '#efe6ff',
     borderRadius: 999,
     overflow: 'hidden'
   },
-  progressFill: { height: '100%', backgroundColor: '#8a4ff0', borderRadius: 999 },
+  progressFill: { height: '100%', backgroundColor: '#66c3b7', borderRadius: 999 },
   actionsRow: {
     flexDirection: 'row',
     alignItems: 'center',

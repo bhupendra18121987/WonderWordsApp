@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { AgeGroupKey, Language } from '../core/types';
 import { t } from '../core/i18n';
@@ -17,7 +17,7 @@ interface MissingLetterGameProps {
   ageGroup: AgeGroupKey;
   language: Language;
   onExit: () => void;
-  speakText: (text: string) => void;
+  speakText: (text: string, languageOverride?: string, options?: { rate?: number; interrupt?: boolean }) => void;
 }
 
 export default function MissingLetterGame({
@@ -36,9 +36,12 @@ export default function MissingLetterGame({
   const [score, setScore] = useState(0);
   const [wrongId, setWrongId] = useState<string | null>(null);
   const [correctId, setCorrectId] = useState<string | null>(null);
+  const [locked, setLocked] = useState(false);
+  const answeredRef = useRef(false);
   const [revealAnswer, setRevealAnswer] = useState(false);
   const [burstCount, setBurstCount] = useState(0);
   const [done, setDone] = useState(false);
+  const speakWithOptions = (text: string, options?: { rate?: number; interrupt?: boolean }) => speakText(text, undefined, options);
 
   const displayGraphemes = useMemo(() => {
     if (!puzzle) return [];
@@ -49,7 +52,7 @@ export default function MissingLetterGame({
 
   // Speak the full word on new puzzle so the child hears the target aloud.
   useEffect(() => {
-    if (puzzle) speakText(puzzle.word.word);
+    if (puzzle) speakWithOptions(puzzle.word.word, { interrupt: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [puzzle]);
 
@@ -63,22 +66,24 @@ export default function MissingLetterGame({
     setRevealAnswer(false);
     setWrongId(null);
     setCorrectId(null);
+    answeredRef.current = false;
+    setLocked(false);
   };
 
   const handleTap = (choice: string) => {
-    if (!puzzle) return;
+    if (!puzzle || answeredRef.current || done) return;
     if (choice === puzzle.answer) {
+      answeredRef.current = true;
+      setLocked(true);
       setScore((s) => s + 1);
       setCorrectId(choice);
       setRevealAnswer(true);
       setBurstCount((b) => b + 1);
-      // Speak the full word once completed so the child hears the shape.
-      speakText(puzzle.word.word);
-      setTimeout(() => speakText(strings.correctFeedback), 700);
-      setTimeout(nextRound, 1800);
+      speakWithOptions(strings.correctFeedback, { rate: 1.2, interrupt: true });
+      setTimeout(nextRound, 900);
     } else {
       setWrongId(choice);
-      speakText(choice);
+      speakWithOptions(choice, { interrupt: true });
       setTimeout(() => setWrongId(null), 500);
     }
   };
@@ -87,6 +92,8 @@ export default function MissingLetterGame({
     setScore(0);
     setRound(1);
     setDone(false);
+    answeredRef.current = false;
+    setLocked(false);
     setRevealAnswer(false);
     setPuzzle(generateMissingLetter(language, ageGroup, choiceCount));
   };
@@ -106,7 +113,7 @@ export default function MissingLetterGame({
 
   if (!puzzle) {
     return (
-      <ThemedScreen title={strings.missingLetterName} onBack={onExit}>
+      <ThemedScreen title={strings.missingLetterName} language={language} onBack={onExit}>
         <Text style={styles.prompt}>—</Text>
       </ThemedScreen>
     );
@@ -115,6 +122,7 @@ export default function MissingLetterGame({
   return (
     <ThemedScreen
       title={strings.missingLetterName}
+      language={language}
       onBack={onExit}
       headerRight={<Text style={styles.headerRight}>{strings.roundLabel(round, ROUNDS_PER_SESSION)}   {strings.scoreLabel(score)}</Text>}
     >
@@ -136,7 +144,7 @@ export default function MissingLetterGame({
         </View>
         <Pressable
           style={styles.speakBtn}
-          onPress={() => speakText(puzzle.word.word)}
+          onPress={() => speakWithOptions(puzzle.word.word, { interrupt: true })}
         >
           <Text style={styles.speakBtnText}>🔊</Text>
         </Pressable>
@@ -158,6 +166,7 @@ export default function MissingLetterGame({
                 pressed && styles.choicePressed
               ]}
               onPress={() => handleTap(c)}
+              disabled={locked}
               accessibilityRole="button"
               accessibilityLabel={c}
             >
@@ -183,7 +192,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 8
   },
-  title: { fontSize: 20, fontWeight: '900', color: '#6d28d9' },
+  title: { fontSize: 20, fontWeight: '900', color: '#0c615d' },
   headerRight: { fontSize: 14, fontWeight: '800', color: '#6b7280' },
 
   wordCard: {
@@ -262,11 +271,11 @@ const styles = StyleSheet.create({
     maxWidth: 460
   },
   doneEmoji: { fontSize: 56 },
-  doneTitle: { fontSize: 22, fontWeight: '900', color: '#6d28d9' },
+  doneTitle: { fontSize: 22, fontWeight: '900', color: '#0c615d' },
   doneScore: { fontSize: 18, fontWeight: '800', color: '#1e1b4b' },
   doneRow: { flexDirection: 'row', gap: 10, marginTop: 8, flexWrap: 'wrap', justifyContent: 'center' },
   actionBtn: { paddingHorizontal: 18, paddingVertical: 12, borderRadius: 999 },
-  primaryBtn: { backgroundColor: '#7c3aed' },
+  primaryBtn: { backgroundColor: '#147d78' },
   primaryBtnText: { color: '#fff', fontWeight: '800' },
   ghostBtn: { backgroundColor: '#ffffff', borderWidth: 2, borderColor: '#e5e5f0' },
   ghostBtnText: { color: '#1e1b4b', fontWeight: '800' }

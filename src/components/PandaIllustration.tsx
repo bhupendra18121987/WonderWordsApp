@@ -14,7 +14,7 @@ export default function PandaIllustration({ size = 140 }: PandaIllustrationProps
     <Svg width={s} height={s} viewBox="0 0 220 220" accessibilityLabel="Panda illustration">
       <Ellipse cx="110" cy="206" rx="62" ry="11" fill="rgba(76,29,149,0.18)" />
 
-      <Rect x="74" y="118" width="72" height="78" rx="28" fill="#7c3aed" />
+      <Rect x="74" y="118" width="72" height="78" rx="28" fill="#147d78" />
       <Rect x="78" y="122" width="64" height="46" rx="22" fill="#8b5cf6" />
       <Path d="M102 122 h16 v20 h-16 z" fill="#f9fafb" />
       <Circle cx="110" cy="132" r="4" fill="#1f2937" />

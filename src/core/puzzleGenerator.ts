@@ -210,7 +210,11 @@ export function selectWordsForLevel({
     );
   });
   if (filtered.length === 0) {
-    return shuffle(bank.filter((e) => e.ageGroups.includes(ageGroup))).slice(0, count);
+    const ageAppropriate = bank.filter((entry) => {
+      const len = splitGraphemes(entry.word).length;
+      return entry.ageGroups.includes(ageGroup) && len >= minLength && len <= maxLength;
+    });
+    return shuffle(ageAppropriate.length > 0 ? ageAppropriate : bank.filter((e) => e.ageGroups.includes(ageGroup))).slice(0, count);
   }
 
   const buckets = new Map<string, WordEntry[]>();
@@ -231,6 +235,25 @@ export function selectWordsForLevel({
     i++;
     if (i > 1000) break;
   }
+
+  // If unlearned words were fewer than requested count, fill remaining slots with age-appropriate review words
+  if (result.length < count) {
+    const needed = count - result.length;
+    const pickedWords = new Set(result.map((r) => r.word));
+    const reviewPool = shuffle(
+      bank.filter((entry) => {
+        const len = splitGraphemes(entry.word).length;
+        return (
+          entry.ageGroups.includes(ageGroup) &&
+          len >= minLength &&
+          len <= maxLength &&
+          !pickedWords.has(entry.word)
+        );
+      })
+    );
+    result.push(...reviewPool.slice(0, needed));
+  }
+
   return result.slice(0, count);
 }
 

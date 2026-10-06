@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LANGUAGE_CONFIG } from '../core/languages';
 import type { Language } from '../core/types';
+import { t } from '../core/i18n';
 
 interface LanguageSelectProps {
   selected: Language | null;
@@ -18,6 +19,7 @@ export default function LanguageSelect({
   onSelect,
   onNext
 }: LanguageSelectProps) {
+  const strings = t(selected ?? 'en');
   const languages = Object.entries(LANGUAGE_CONFIG) as [
     Language,
     typeof LANGUAGE_CONFIG[Language]
@@ -40,8 +42,8 @@ export default function LanguageSelect({
         </View>
       )}
 
-      <Text style={styles.title}>Pick your language!</Text>
-      <Text style={styles.titleHi}>अपनी भाषा चुनें</Text>
+      <Text style={styles.title}>{strings.languageHeading}</Text>
+      <Text style={styles.titleHi}>{strings.languageDescription}</Text>
 
       <View style={styles.grid}>
         {languages.map(([key, cfg]) => (
@@ -64,7 +66,7 @@ export default function LanguageSelect({
         onPress={onNext}
         disabled={!selected}
       >
-        <Text style={styles.nextBtnText}>Next →</Text>
+        <Text style={styles.nextBtnText}>{strings.next}</Text>
       </Pressable>
     </View>
   );
@@ -99,17 +101,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#e5e5f0'
   },
   dotDone: { backgroundColor: '#58c896' },
-  dotActive: { backgroundColor: '#7c3aed', transform: [{ scale: 1.35 }] },
+  dotActive: { backgroundColor: '#147d78', transform: [{ scale: 1.35 }] },
   title: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#6d28d9',
+    color: '#0c615d',
     marginTop: 8
   },
   titleHi: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#6d28d9',
+    color: '#0c615d',
     marginTop: -6
   },
   grid: {
@@ -141,7 +143,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff8e1'
   },
   flag: { fontSize: 56 },
-  name: { fontSize: 22, fontWeight: '800', color: '#6d28d9' },
+  name: { fontSize: 22, fontWeight: '800', color: '#0c615d' },
   sample: {
     fontSize: 18,
     fontWeight: '800',
@@ -150,7 +152,7 @@ const styles = StyleSheet.create({
   },
   nextBtn: {
     marginTop: 20,
-    backgroundColor: '#7c3aed',
+    backgroundColor: '#147d78',
     paddingVertical: 18,
     paddingHorizontal: 36,
     borderRadius: 999

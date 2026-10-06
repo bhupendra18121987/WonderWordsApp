@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getRewardsData } from '../core/data';
+import { t } from '../core/i18n';
 import { colors, radii, shadow } from '../core/theme';
 import type { Language, Progress } from '../core/types';
 import BackButton from './BackButton';
@@ -16,27 +17,28 @@ interface RewardsScreenProps {
 type Tab = 'badges' | 'stars' | 'stickers';
 
 export default function RewardsScreen({ language, progress, onBack }: RewardsScreenProps) {
+  const strings = t(language);
   const insets = useSafeAreaInsets();
   const rewards = getRewardsData(language);
   const [tab, setTab] = useState<Tab>('badges');
   const earned = new Set(progress.badges);
 
   const tabs: { id: Tab; label: string; emoji: string }[] = [
-    { id: 'badges',   label: 'Badges',   emoji: '🏅' },
-    { id: 'stars',    label: 'Stars',    emoji: '⭐' },
-    { id: 'stickers', label: 'Stickers', emoji: '🎨' }
+    { id: 'badges',   label: strings.badgesTitle.replace(/^🏅\s*/, ''), emoji: '🏅' },
+    { id: 'stars',    label: strings.totalStars, emoji: '⭐' },
+    { id: 'stickers', label: strings.stickers, emoji: '🎨' }
   ];
 
   return (
     <LinearGradient
-      colors={['#8a4ff0', '#6b2fd5']}
+      colors={['#147d78', '#0c615d']}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={[styles.screen, { paddingTop: insets.top + 12, paddingBottom: 130 + insets.bottom }]}
     >
       <View style={styles.topbar}>
-        <BackButton onPress={onBack} variant="light" />
-        <Text style={styles.topTitle}>My Rewards 🎁</Text>
+        <BackButton onPress={onBack} variant="light" label={strings.back} />
+        <Text style={styles.topTitle}>{strings.rewardsTitle}</Text>
         <View style={{ width: 44 }} />
       </View>
 
@@ -83,15 +85,15 @@ export default function RewardsScreen({ language, progress, onBack }: RewardsScr
         {tab === 'stars' && (
           <View style={styles.centered}>
             <Text style={styles.bigStat}>⭐  {progress.stars}</Text>
-            <Text style={styles.bigStatLabel}>Total Stars</Text>
-            <Text style={styles.hint}>Play puzzles and mini-games to collect more!</Text>
+            <Text style={styles.bigStatLabel}>{strings.totalStars}</Text>
+            <Text style={styles.hint}>{strings.playForRewards}</Text>
           </View>
         )}
 
         {tab === 'stickers' && (
           <View style={styles.centered}>
             <Text style={styles.emptyEmoji}>🎨</Text>
-            <Text style={styles.hint}>Sticker collection coming soon.</Text>
+            <Text style={styles.hint}>{strings.stickerComingSoon}</Text>
           </View>
         )}
       </ScrollView>

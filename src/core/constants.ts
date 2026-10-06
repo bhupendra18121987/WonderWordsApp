@@ -16,7 +16,9 @@ export const DEFAULT_PROGRESS: Progress = {
   puzzlesCompleted: 0,
   learnedWords: [],
   badges: [],
-  lastPlayedLevel: 0
+  lastPlayedLevel: 0,
+  activitiesCompleted: 0,
+  activityStars: 0
 };
 
 export const STORAGE_KEYS = {

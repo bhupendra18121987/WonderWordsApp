@@ -1,19 +1,21 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  PanResponder,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
-  type GestureResponderEvent,
+  useWindowDimensions,
+  type NativeSyntheticEvent,
+  type NativeTouchEvent,
   type LayoutChangeEvent,
-  type PanResponderGestureState
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import type { AgeGroupKey, Language } from '../core/types';
 import { t } from '../core/i18n';
-import { tracePool, type TraceMode } from '../core/data/tracePool';
+import { graphemeLength } from '../core/grapheme';
+import { traceModeLang, tracePool, type TraceMode } from '../core/data/tracePool';
+import MiniConfetti from './MiniConfetti';
 import ThemedScreen from './ThemedScreen';
 
 interface TraceLetterGameProps {
@@ -21,7 +23,7 @@ interface TraceLetterGameProps {
   language: Language;
   onExit: () => void;
   /** Speaks a character/word in the given TTS language. */
-  speakText: (text: string) => void;
+  speakText: (text: string, lang?: string) => void;
 }
 
 interface Point { x: number; y: number }
@@ -45,9 +47,9 @@ function pointsToPath(pts: Point[]): string {
 /**
  * Free-hand tracing mini-game. The current character/word is shown
  * behind the drawing surface as a faded template; the child drags
- * their finger to trace over it. We do not check the accuracy of the
- * traced line (that would need per-glyph SVG paths) — this is a
- * practice / familiarisation activity.
+ * their finger to trace over it. A lightweight coverage check makes sure
+ * the child has traced a meaningful portion of the shown glyph before
+ * unlocking the next item.
  */
 export default function TraceLetterGame({
   ageGroup,
@@ -56,100 +58,193 @@ export default function TraceLetterGame({
   speakText
 }: TraceLetterGameProps) {
   const strings = t(language);
+  const { width: windowWidth } = useWindowDimensions();
   const [mode, setMode] = useState<TraceMode>('caps');
   const [index, setIndex] = useState(0);
   const [strokes, setStrokes] = useState<Point[][]>([]);
-  const currentStrokeRef = useRef<Point[]>([]);
-  const canvasOriginRef = useRef({ x: 0, y: 0 });
-  const canvasSizeRef = useRef({ w: 0, h: 0 });
+  const [completed, setCompleted] = useState<number[]>([]);
+  const [checkMessage, setCheckMessage] = useState('');
+  const [burstCount, setBurstCount] = useState(0);
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  const [glyphBounds, setGlyphBounds] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [activeStroke, setActiveStroke] = useState<Point[]>([]);
+  const activeStrokeRef = useRef<Point[]>([]);
+  const nextTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (nextTimerRef.current) clearTimeout(nextTimerRef.current);
+    };
+  }, []);
 
   const pool = useMemo(() => tracePool(mode, ageGroup), [mode, ageGroup]);
   const current = pool[index] ?? '';
 
   // Reset when mode changes.
   const changeMode = (m: TraceMode) => {
+    if (nextTimerRef.current) {
+      clearTimeout(nextTimerRef.current);
+      nextTimerRef.current = null;
+    }
     setMode(m);
     setIndex(0);
     setStrokes([]);
-    currentStrokeRef.current = [];
+    setCompleted([]);
+    setCheckMessage('');
+    activeStrokeRef.current = [];
+    setActiveStroke([]);
   };
 
   const clear = () => {
     setStrokes([]);
-    currentStrokeRef.current = [];
+    activeStrokeRef.current = [];
+    setActiveStroke([]);
+    setCheckMessage('');
+  };
+
+  const checkTrace = () => {
+    if (completed.includes(index)) return;
+    const { width, height } = canvasSize;
+    if (!width || !height || !glyphBounds.width || !glyphBounds.height) return;
+    let length = 0;
+    let minX = width;
+    let maxX = 0;
+    let minY = height;
+    let maxY = 0;
+    const occupied = new Set<string>();
+    let pointCount = 0;
+    const toleranceX = glyphBounds.width * 0.12;
+    const toleranceY = glyphBounds.height * 0.12;
+    const expanded = {
+      left: glyphBounds.x - toleranceX,
+      top: glyphBounds.y - toleranceY,
+      right: glyphBounds.x + glyphBounds.width + toleranceX,
+      bottom: glyphBounds.y + glyphBounds.height + toleranceY
+    };
+    for (const stroke of strokes) {
+      for (let i = 0; i < stroke.length; i++) {
+        const point = stroke[i]!;
+        const localX = point.x - glyphBounds.x;
+        const localY = point.y - glyphBounds.y;
+        const inside = point.x >= expanded.left && point.x <= expanded.right && point.y >= expanded.top && point.y <= expanded.bottom;
+        if (inside) {
+          pointCount++;
+          minX = Math.min(minX, point.x);
+          maxX = Math.max(maxX, point.x);
+          minY = Math.min(minY, point.y);
+          maxY = Math.max(maxY, point.y);
+          const col = Math.floor(((localX + toleranceX) / (glyphBounds.width + toleranceX * 2)) * 6);
+          const row = Math.floor(((localY + toleranceY) / (glyphBounds.height + toleranceY * 2)) * 6);
+          if (col >= 0 && col < 6 && row >= 0 && row < 6) occupied.add(`${row}:${col}`);
+          if (i > 0) {
+            const previous = stroke[i - 1]!;
+            const previousInside = previous.x >= expanded.left && previous.x <= expanded.right && previous.y >= expanded.top && previous.y <= expanded.bottom;
+            if (previousInside) {
+              length += Math.hypot(point.x - previous.x, point.y - previous.y);
+            }
+          }
+        }
+      }
+    }
+    const characterCount = Math.max(1, graphemeLength(current));
+    const longSide = Math.max(glyphBounds.width, glyphBounds.height);
+    const narrowGlyph = Math.min(glyphBounds.width, glyphBounds.height) / longSide < 0.4;
+    const requiredLength = longSide * (narrowGlyph ? 0.38 : 0.45) * Math.sqrt(characterCount);
+    const spreadEnough = (glyphBounds.width >= glyphBounds.height ? maxX - minX : maxY - minY) >= longSide * 0.35;
+    const requiredCells = characterCount > 1 ? Math.min(22, 10 + (characterCount - 1) * 3) : narrowGlyph ? 6 : 10;
+    if (pointCount >= 16 && length >= requiredLength && spreadEnough && occupied.size >= requiredCells) {
+      setCompleted((items) => items.includes(index) ? items : [...items, index]);
+      setCheckMessage('');
+      setBurstCount((count) => count + 1);
+      speakText(strings.tracePassed, traceModeLang(mode) === 'hi' ? 'hi-IN' : 'en-US');
+      if (index < pool.length - 1) {
+        nextTimerRef.current = setTimeout(() => {
+          setIndex(index + 1);
+          setStrokes([]);
+          activeStrokeRef.current = [];
+          setActiveStroke([]);
+          setCheckMessage('');
+          speakText(pool[index + 1]!, traceModeLang(mode) === 'hi' ? 'hi-IN' : 'en-US');
+        }, 950);
+      } else {
+        setCheckMessage('🎉 ⭐ 🌈');
+      }
+    } else {
+      setCheckMessage(strings.traceNeedMore);
+    }
   };
 
   const goNext = () => {
-    if (index < pool.length - 1) {
+    if (index < pool.length - 1 && completed.includes(index)) {
       setIndex(index + 1);
       clear();
-      speakText(pool[index + 1]!);
+      speakText(pool[index + 1]!, traceModeLang(mode) === 'hi' ? 'hi-IN' : 'en-US');
     }
   };
   const goPrev = () => {
     if (index > 0) {
       setIndex(index - 1);
       clear();
-      speakText(pool[index - 1]!);
+      speakText(pool[index - 1]!, traceModeLang(mode) === 'hi' ? 'hi-IN' : 'en-US');
     }
   };
 
-  const onCanvasLayout = (e: LayoutChangeEvent) => {
-    canvasSizeRef.current = { w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height };
-  };
+  const relativePoint = (e: NativeSyntheticEvent<NativeTouchEvent>): Point => ({
+    x: e.nativeEvent.locationX,
+    y: e.nativeEvent.locationY
+  });
 
-  const relativePoint = (e: GestureResponderEvent): Point => {
-    // locationX/Y are relative to the responder view (the canvas).
-    return {
-      x: e.nativeEvent.locationX,
-      y: e.nativeEvent.locationY
-    };
+  // Use native touch events directly. PanResponder can lose move/release events
+  // on Android when the canvas is inside a nested scrollable screen.
+  const startStroke = (event: NativeSyntheticEvent<NativeTouchEvent>) => {
+    const point = relativePoint(event);
+    activeStrokeRef.current = [point];
+    setActiveStroke([point]);
   };
-
-  const panResponder = useMemo(() =>
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: (e: GestureResponderEvent) => {
-        currentStrokeRef.current = [relativePoint(e)];
-        setStrokes((s) => [...s, currentStrokeRef.current]);
-      },
-      onPanResponderMove: (e: GestureResponderEvent, _g: PanResponderGestureState) => {
-        currentStrokeRef.current.push(relativePoint(e));
-        // Trigger a re-render by updating strokes reference.
-        setStrokes((s) => {
-          const clone = s.slice();
-          clone[clone.length - 1] = [...currentStrokeRef.current];
-          return clone;
-        });
-      },
-      onPanResponderRelease: () => {
-        currentStrokeRef.current = [];
-      },
-      onPanResponderTerminate: () => {
-        currentStrokeRef.current = [];
-      }
-    }),
-    []
-  );
+  const extendStroke = (event: NativeSyntheticEvent<NativeTouchEvent>) => {
+    const previousPoints = activeStrokeRef.current;
+    if (previousPoints.length === 0 || previousPoints.length >= 1200) return;
+    const point = relativePoint(event);
+    const last = previousPoints[previousPoints.length - 1]!;
+    const distance = Math.hypot(point.x - last.x, point.y - last.y);
+    if (distance < 1) return;
+    // Interpolate between Android touch samples so quick finger movement still
+    // leaves a continuous line instead of disconnected dots.
+    const steps = Math.ceil(distance / 5);
+    const additions = Array.from({ length: steps }, (_, i) => ({
+      x: last.x + ((point.x - last.x) * (i + 1)) / steps,
+      y: last.y + ((point.y - last.y) * (i + 1)) / steps
+    }));
+    const nextPoints = [...previousPoints, ...additions].slice(-1200);
+    activeStrokeRef.current = nextPoints;
+    setActiveStroke(nextPoints);
+  };
+  const finishStroke = () => {
+    const finished = activeStrokeRef.current;
+    if (finished.length > 1) setStrokes((existing) => [...existing, finished]);
+    activeStrokeRef.current = [];
+    setActiveStroke([]);
+  };
 
   const isCursive = mode === 'cursive';
+  const canGoNext = index < pool.length - 1 && completed.includes(index);
 
   return (
     <ThemedScreen
       title={strings.traceName}
+      language={language}
       onBack={onExit}
       headerRight={<Text style={styles.meta}>{index + 1} / {pool.length}</Text>}
       scroll={false}
     >
       <Pressable
         style={styles.title}
-        onPress={() => current && speakText(current)}
+        onPress={() => current && speakText(current, traceModeLang(mode) === 'hi' ? 'hi-IN' : 'en-US')}
       >
         <Text style={styles.titleText}>{'✍️ '}{current || '—'}</Text>
       </Pressable>
 
-      <Text style={styles.subtitle}>{strings.traceSub}</Text>
+      <Text style={styles.subtitle}>{checkMessage || strings.traceSub}</Text>
 
       {/* Mode picker */}
       <ScrollView
@@ -167,7 +262,7 @@ export default function TraceLetterGame({
             >
               <Text style={[styles.modeBtnText, active && styles.modeBtnTextActive]}>
                 {/* Fallback labels — i18n applied below via strings prop pattern would be nicer */}
-                {LABEL_FOR_MODE[m.id]}
+                {strings[m.labelKey] ?? LABEL_FOR_MODE[m.id]}
               </Text>
             </Pressable>
           );
@@ -176,14 +271,24 @@ export default function TraceLetterGame({
 
       {/* Drawing canvas */}
       <View
+        collapsable={false}
+        pointerEvents="box-only"
         style={styles.canvas}
-        onLayout={onCanvasLayout}
-        {...panResponder.panHandlers}
+        onLayout={(event: LayoutChangeEvent) => {
+          setCanvasSize({ width: event.nativeEvent.layout.width, height: event.nativeEvent.layout.height });
+        }}
+        onTouchStart={startStroke}
+        onTouchMove={extendStroke}
+        onTouchEnd={finishStroke}
+        onTouchCancel={finishStroke}
       >
         {/* Ghost character */}
         <Text
+          pointerEvents="none"
+          onLayout={(event: LayoutChangeEvent) => setGlyphBounds(event.nativeEvent.layout)}
           style={[
             styles.ghostChar,
+            { fontSize: Math.min(280, windowWidth * 0.78), lineHeight: Math.min(310, windowWidth * 0.86) },
             isCursive && styles.ghostCharCursive,
             mode === 'hindiWords' && styles.ghostCharWord
           ]}
@@ -194,8 +299,14 @@ export default function TraceLetterGame({
         </Text>
 
         {/* User's ink */}
-        <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
-          {strokes.map((stroke, i) => (
+        <Svg
+          style={StyleSheet.absoluteFill}
+          width={canvasSize.width || '100%'}
+          height={canvasSize.height || '100%'}
+          viewBox={`0 0 ${canvasSize.width || 1} ${canvasSize.height || 1}`}
+          pointerEvents="none"
+        >
+          {strokes.map((stroke, i) => stroke.length ? (
             <Path
               key={i}
               d={pointsToPath(stroke)}
@@ -205,26 +316,42 @@ export default function TraceLetterGame({
               strokeLinejoin="round"
               fill="none"
             />
-          ))}
+          ) : null)}
+          {activeStroke.length ? (
+            <Path
+              key="active-trace"
+              d={pointsToPath(activeStroke)}
+              stroke="#e26a89"
+              strokeWidth={8}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+            />
+          ) : null}
         </Svg>
       </View>
 
       {/* Controls */}
       <View style={styles.controls}>
         <Pressable style={[styles.ctrlBtn, styles.ctrlGhost]} onPress={goPrev} disabled={index === 0}>
-          <Text style={styles.ctrlGhostText}>{strings.tracePrev}</Text>
+          <Text numberOfLines={1} style={styles.ctrlGhostText}>{strings.tracePrev}</Text>
         </Pressable>
-        <Pressable style={[styles.ctrlBtn, styles.ctrlPrimary]} onPress={clear}>
-          <Text style={styles.ctrlPrimaryText}>{strings.traceClear}</Text>
+        <Pressable style={[styles.ctrlBtn, styles.ctrlGhost]} onPress={clear}>
+          <Text numberOfLines={1} style={styles.ctrlGhostText}>{strings.traceClear}</Text>
+        </Pressable>
+        <Pressable style={[styles.ctrlBtn, styles.ctrlPrimary]} onPress={checkTrace}>
+          <Text numberOfLines={1} adjustsFontSizeToFit style={styles.ctrlPrimaryText}>{strings.traceCheck}</Text>
         </Pressable>
         <Pressable
-          style={[styles.ctrlBtn, styles.ctrlGhost]}
+          style={[styles.ctrlBtn, styles.ctrlGhost, !canGoNext && styles.ctrlDisabled]}
           onPress={goNext}
-          disabled={index >= pool.length - 1}
+          disabled={!canGoNext}
         >
-          <Text style={styles.ctrlGhostText}>{strings.traceNext}</Text>
+          <Text numberOfLines={1} style={styles.ctrlGhostText}>{strings.traceNext}</Text>
         </Pressable>
       </View>
+
+      <MiniConfetti trigger={burstCount} />
     </ThemedScreen>
   );
 }
@@ -249,7 +376,7 @@ const styles = StyleSheet.create({
     marginBottom: 8
   },
   title: { flexShrink: 1 },
-  titleText: { fontSize: 20, fontWeight: '900', color: '#6d28d9' },
+  titleText: { fontSize: 20, fontWeight: '900', color: '#0c615d' },
   meta: { fontSize: 14, fontWeight: '800', color: '#6b7280' },
   subtitle: { fontSize: 13, fontWeight: '700', color: '#6b7280', marginBottom: 4 },
 
@@ -264,7 +391,7 @@ const styles = StyleSheet.create({
     minWidth: 60,
     alignItems: 'center'
   },
-  modeBtnActive: { backgroundColor: '#7c3aed', borderColor: '#6d28d9' },
+  modeBtnActive: { backgroundColor: '#147d78', borderColor: '#0c615d' },
   modeBtnText: { fontWeight: '800', color: '#1e1b4b', fontSize: 14 },
   modeBtnTextActive: { color: '#fff' },
 
@@ -286,11 +413,14 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   ghostChar: {
-    fontSize: 320,
+    maxWidth: '96%',
+    includeFontPadding: false,
+    fontSize: 280,
     fontWeight: '900',
-    color: 'rgba(75, 60, 120, 0.14)',
+    color: 'rgba(75, 60, 120, 0.28)',
     textAlign: 'center',
-    lineHeight: 380
+    lineHeight: 310,
+    textAlignVertical: 'center'
   },
   ghostCharCursive: {
     fontStyle: 'italic',
@@ -304,16 +434,19 @@ const styles = StyleSheet.create({
 
   controls: {
     marginTop: 4,
+    width: '100%',
+    maxWidth: 520,
     flexDirection: 'row',
     gap: 10,
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
     justifyContent: 'center'
   },
-  ctrlBtn: { paddingHorizontal: 20, paddingVertical: 12, borderRadius: 999, minWidth: 60, alignItems: 'center' },
-  ctrlPrimary: { backgroundColor: '#7c3aed' },
+  ctrlBtn: { flexShrink: 1, paddingHorizontal: 10, paddingVertical: 12, borderRadius: 999, minWidth: 48, alignItems: 'center', justifyContent: 'center' },
+  ctrlPrimary: { backgroundColor: '#147d78' },
   ctrlPrimaryText: { color: '#fff', fontWeight: '900' },
   ctrlGhost: { backgroundColor: '#ffffff', borderWidth: 2, borderColor: '#e5e5f0' },
-  ctrlGhostText: { color: '#1e1b4b', fontWeight: '900', fontSize: 18 },
+  ctrlGhostText: { color: '#1e1b4b', fontWeight: '900', fontSize: 16, textAlign: 'center' },
+  ctrlDisabled: { opacity: 0.45 },
 
   back: {
     marginTop: 14,

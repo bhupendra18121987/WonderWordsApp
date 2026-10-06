@@ -1,6 +1,8 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, radii, shadow } from '../core/theme';
+import { t } from '../core/i18n';
+import type { Language } from '../core/types';
 
 interface TopBarProps {
   /** Total stars/points displayed in the yellow chip on the left. */
@@ -11,6 +13,8 @@ interface TopBarProps {
   onOpenSettings: () => void;
   /** Optional handler that opens the onboarding tour. */
   onOpenTour?: () => void;
+  onOpenParents?: () => void;
+  language?: Language;
 }
 
 /**
@@ -19,27 +23,33 @@ interface TopBarProps {
  *   - Gear icon on the right in a violet circle
  * Absolutely positioned; safe-area aware.
  */
-export default function TopBar({ stars, onStarsPress, onOpenSettings, onOpenTour }: TopBarProps) {
+export default function TopBar({ stars, onStarsPress, onOpenSettings, onOpenTour, onOpenParents, language = 'en' }: TopBarProps) {
   const insets = useSafeAreaInsets();
+  const strings = t(language);
   return (
     <View style={[styles.bar, { paddingTop: insets.top + 8 }]} pointerEvents="box-none">
       <Pressable
         style={({ pressed }) => [styles.chip, pressed && styles.pressed]}
         onPress={onStarsPress}
         accessibilityRole="button"
-        accessibilityLabel={`${stars} stars`}
+        accessibilityLabel={strings.starsFmt(stars)}
       >
         <Text style={styles.chipStar}>⭐</Text>
         <Text style={styles.chipText}>{stars}</Text>
       </Pressable>
 
       <View style={styles.actions}>
+        {onOpenParents ? (
+          <Pressable style={({ pressed }) => [styles.gear, pressed && styles.pressed]} onPress={onOpenParents} accessibilityRole="button" accessibilityLabel={strings.parentArea}>
+            <Text style={styles.gearIcon}>👪</Text>
+          </Pressable>
+        ) : null}
         {onOpenTour ? (
           <Pressable
             style={({ pressed }) => [styles.gear, styles.tour, pressed && styles.pressed]}
             onPress={onOpenTour}
             accessibilityRole="button"
-            accessibilityLabel="Tour"
+            accessibilityLabel={strings.tour}
           >
             <Text style={styles.gearIcon}>🎬</Text>
           </Pressable>
@@ -49,7 +59,7 @@ export default function TopBar({ stars, onStarsPress, onOpenSettings, onOpenTour
           style={({ pressed }) => [styles.gear, pressed && styles.pressed]}
           onPress={onOpenSettings}
           accessibilityRole="button"
-          accessibilityLabel="Settings"
+          accessibilityLabel={strings.settings}
         >
           <Text style={styles.gearIcon}>⚙️</Text>
         </Pressable>

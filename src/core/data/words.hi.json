@@ -1,5 +1,15 @@
 {
   "ageGroups": {
+    "2-3": {
+      "label": "2 – 3 वर्ष",
+      "emoji": "🐣",
+      "gridSize": 4,
+      "wordsPerPuzzle": 3,
+      "minLength": 2,
+      "maxLength": 3,
+      "directions": ["horizontal", "vertical"],
+      "themeColor": "#ffd6a5"
+    },
     "3-4": {
       "label": "3 – 4 वर्ष",
       "emoji": "🐣",

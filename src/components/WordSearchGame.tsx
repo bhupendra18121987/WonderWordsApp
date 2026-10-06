@@ -154,6 +154,14 @@ export default function WordSearchGame({
     lastActiveTimeRef.current = Date.now();
   }, [foundWords, mistakes, hintsUsed]);
 
+  const allFoundCells = useMemo(
+    () => foundWords.flatMap((f) => f.cells),
+    [foundWords]
+  );
+  const foundWordStrings = useMemo(
+    () => foundWords.map((f) => f.word),
+    [foundWords]
+  );
   // Idle Hint Pulse: if the child doesn't interact for 12s, gently pulse the first letter of an unfound word
   useEffect(() => {
     if (completion || reveal) return;
@@ -171,14 +179,7 @@ export default function WordSearchGame({
     return () => clearInterval(interval);
   }, [completion, reveal, puzzle.placements, foundWordStrings, hintCells.length]);
 
-  const allFoundCells = useMemo(
-    () => foundWords.flatMap((f) => f.cells),
-    [foundWords]
-  );
-  const foundWordStrings = useMemo(
-    () => foundWords.map((f) => f.word),
-    [foundWords]
-  );
+
 
   const foundGroups = useMemo(
     () =>
@@ -216,7 +217,7 @@ export default function WordSearchGame({
         const item = puzzle.items.find((w) => w.word === target.word);
         streakRef.current += 1;
         if (foundWordStrings.length + 1 === puzzle.items.length) finalWordPendingRef.current = true;
-        // Note: don't speak the word here — the WordReveal modal that
+        // Note: don't speak the word here â€” the WordReveal modal that
         // opens next auto-speaks it, so speaking again would double up.
         setFoundWords((prev) => [
           ...prev,
@@ -373,7 +374,7 @@ export default function WordSearchGame({
             <View style={styles.hintIcon}>
               <LightbulbIcon size={16} />
             </View>
-            <Text style={styles.hintLabel}>{strings.hint.replace(/^[💡\s]+/, '')}</Text>
+            <Text style={styles.hintLabel}>{strings.hint.replace(/^[ðŸ’¡\s]+/, '')}</Text>
             <View style={styles.hintBadge}>
               <Text style={styles.hintBadgeText}>{hintsRemaining}</Text>
             </View>

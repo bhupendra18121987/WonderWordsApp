@@ -5,6 +5,7 @@ import { t } from '../core/i18n';
 import { colors, radii, shadow } from '../core/theme';
 import type { AgeGroupKey, Language, Progress } from '../core/types';
 import { adventureInfo, type AdventureId } from '../core/adventures';
+import { todayDateString } from '../core/gameLogic';
 import {
   LevelMapScene,
   LevelStar,
@@ -57,6 +58,11 @@ export default function HomeScreen({
   const mapWidth = width - 32;
   const mapHeight = Math.min(460, mapWidth * 1.05);
 
+  const today = todayDateString();
+  const dailyStars = progress.dailyDate === today ? (progress.dailyStars ?? 0) : 0;
+  const DAILY_TARGET = 3;
+  const progressPct = Math.min(100, Math.round((dailyStars / DAILY_TARGET) * 100));
+
   return (
     <LinearGradient
       colors={['#dff3e9', '#f8f5e9']}
@@ -71,6 +77,24 @@ export default function HomeScreen({
           <Text style={styles.heroSub}>{strings.homeSub}</Text>
         </View>
         <PandaMascot size={80} />
+      </View>
+
+      {/* Visual Daily Goal Card */}
+      <View style={styles.dailyCard}>
+        <View style={styles.dailyTop}>
+          <Text style={styles.dailyTitle}>⭐ {strings.dailyGoal}</Text>
+          <Text style={styles.dailyCount}>
+            {dailyStars} / {DAILY_TARGET}
+          </Text>
+        </View>
+        <View style={styles.dailyTrack}>
+          <View style={[styles.dailyFill, { width: `${progressPct}%` }]} />
+        </View>
+        {dailyStars >= DAILY_TARGET && (
+          <Text style={styles.dailyPraise}>
+            🎉 {language === 'hi' ? 'आज का लक्ष्य पूरा हुआ! बहुत खूब!' : 'Goal reached today! Super job!'}
+          </Text>
+        )}
       </View>
 
       <View style={styles.quickSection}>
@@ -184,6 +208,49 @@ const styles = StyleSheet.create({
     // Match the web `.home-hero { margin: 44px 0 auto }` — push the card
     // down so it clears the absolutely-positioned TopBar chrome.
     marginTop: 26
+  },
+  dailyCard: {
+    width: '100%',
+    backgroundColor: '#ffffff',
+    borderRadius: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 2,
+    borderColor: '#ffe8a3',
+    gap: 8,
+    ...shadow.soft
+  },
+  dailyTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  dailyTitle: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#8c5e08'
+  },
+  dailyCount: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#d48806'
+  },
+  dailyTrack: {
+    height: 10,
+    backgroundColor: '#fff4cc',
+    borderRadius: 999,
+    overflow: 'hidden'
+  },
+  dailyFill: {
+    height: '100%',
+    backgroundColor: '#ffb800',
+    borderRadius: 999
+  },
+  dailyPraise: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#15803d',
+    marginTop: 2
   },
   quickSection: { width: '100%', gap: 8 },
   quickHeading: { color: '#155e59', fontSize: 16, fontWeight: '900' },

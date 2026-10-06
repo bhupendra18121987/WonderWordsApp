@@ -198,7 +198,7 @@ export default function TicTacToeGame({
       {result && result.outcome !== 'win' && (
         <View style={[styles.resultBanner, result.outcome === 'lose' ? styles.resultLose : styles.resultTie]}>
           <Text style={styles.resultEmoji}>
-            {result.outcome === 'lose' ? '🦉' : '🤝'}
+            {result.outcome === 'lose' ? 'ðŸ¦‰' : 'ðŸ¤'}
           </Text>
           <Text style={styles.resultText}>
             {result.outcome === 'lose' ? strings.owlWon : strings.itsATie}
@@ -239,22 +239,27 @@ interface TokenBadgeProps {
   language: Language;
   active: boolean;
   tone: 'player' | 'owl';
+  onPress?: () => void;
 }
 
-function TokenBadge({ who, token, language, active, tone }: TokenBadgeProps) {
+function TokenBadge({ who, token, language, active, tone, onPress }: TokenBadgeProps) {
   return (
-    <View
-      style={[
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel="${who}: ${token.labels[language]}"
+      style={({ pressed }) => [
         styles.badge,
-        active && (tone === 'player' ? styles.badgePlayerActive : styles.badgeOwlActive)
+        active && (tone === 'player' ? styles.badgePlayerActive : styles.badgeOwlActive),
+        pressed && { transform: [{ scale: 0.95 }] }
       ]}
     >
       <Text style={styles.badgeEmoji}>{token.emoji}</Text>
       <View>
         <Text style={styles.badgeWho}>{who}</Text>
-        <Text style={styles.badgeWord}>{token.labels[language]}</Text>
+        <Text style={styles.badgeWord}>{token.labels[language]} 🔊</Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
 

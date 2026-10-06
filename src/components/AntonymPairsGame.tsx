@@ -135,7 +135,18 @@ export default function AntonymPairsGame({
       onBack={onExit}
       headerRight={<Text style={styles.headerRight}>{matched.size} / {initialPairs.length}</Text>}
     >
-      <Text style={styles.prompt}>{strings.antonymPrompt}</Text>
+      {/* Speaker pill — lets child replay the prompt instruction */}
+      <View style={styles.promptRow}>
+        <Text style={styles.prompt}>{strings.antonymPrompt}</Text>
+        <Pressable
+          style={styles.speakerPill}
+          onPress={() => speakText(strings.antonymPrompt)}
+          accessibilityRole="button"
+          accessibilityLabel="Hear instructions"
+        >
+          <Text style={styles.speakerPillText}>🔊</Text>
+        </Pressable>
+      </View>
 
       <View style={styles.grid}>
         {deck.map((card) => {
@@ -189,7 +200,25 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 20, fontWeight: '900', color: '#0c615d' },
   headerRight: { fontSize: 14, fontWeight: '800', color: '#6b7280' },
-  prompt: { fontSize: 14, fontWeight: '700', color: '#6b7280', marginBottom: 12, textAlign: 'center' },
+
+  promptRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+    justifyContent: 'center',
+    flexWrap: 'wrap'
+  },
+  prompt: { fontSize: 14, fontWeight: '700', color: '#6b7280', textAlign: 'center' },
+  speakerPill: {
+    backgroundColor: '#4ec37a',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  speakerPillText: { fontSize: 18 },
 
   grid: {
     width: '100%',

@@ -1,3 +1,5 @@
+import { useEffect, useRef } from 'react';
+import { Animated } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 
 /** Illustrated home level-map: sky, water, land, winding path, trees. */
@@ -93,21 +95,43 @@ export function LevelStar({ filled = true, size = 12 }: { filled?: boolean; size
   );
 }
 
-/** Small kawaii panda mascot for the hero card. */
+/** Animated kawaii panda mascot — gently bobs up and down on mount. */
 export function PandaMascot({ size = 76 }: { size?: number }) {
+  const bobAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Gentle float: 3 cycles of up-down bob, then rest
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(bobAnim, { toValue: -6, duration: 700, useNativeDriver: true }),
+        Animated.timing(bobAnim, { toValue: 0,  duration: 700, useNativeDriver: true }),
+      ]),
+      { iterations: 3 }
+    ).start();
+  }, [bobAnim]);
+
   return (
-    <Svg width={size} height={size} viewBox="0 0 120 120">
-      <Circle cx={34} cy={26} r={16} fill="#1e1b3a" />
-      <Circle cx={86} cy={26} r={16} fill="#1e1b3a" />
-      <Circle cx={60} cy={60} r={42} fill="#fff" />
-      <Circle cx={46} cy={62} r={5} fill="#fff" />
-      <Circle cx={74} cy={62} r={5} fill="#fff" />
-      <Circle cx={46} cy={62} r={2.5} fill="#111" />
-      <Circle cx={74} cy={62} r={2.5} fill="#111" />
-      <Circle cx={60} cy={74} r={3} fill="#1e1b3a" />
-      <Path d="M56 82 Q60 88 64 82" stroke="#1e1b3a" strokeWidth={2.2} strokeLinecap="round" fill="none" />
-      <Circle cx={32} cy={76} r={4} fill="#ffc0d3" opacity={0.85} />
-      <Circle cx={88} cy={76} r={4} fill="#ffc0d3" opacity={0.85} />
-    </Svg>
+    <Animated.View style={{ transform: [{ translateY: bobAnim }] }}>
+      <Svg width={size} height={size} viewBox="0 0 120 120">
+        {/* ears */}
+        <Circle cx={34} cy={26} r={16} fill="#1e1b3a" />
+        <Circle cx={86} cy={26} r={16} fill="#1e1b3a" />
+        {/* face */}
+        <Circle cx={60} cy={60} r={42} fill="#fff" />
+        {/* eye patches */}
+        <Circle cx={46} cy={62} r={5} fill="#fff" />
+        <Circle cx={74} cy={62} r={5} fill="#fff" />
+        {/* pupils */}
+        <Circle cx={46} cy={62} r={2.5} fill="#111" />
+        <Circle cx={74} cy={62} r={2.5} fill="#111" />
+        {/* nose */}
+        <Circle cx={60} cy={74} r={3} fill="#1e1b3a" />
+        {/* smile */}
+        <Path d="M56 82 Q60 88 64 82" stroke="#1e1b3a" strokeWidth={2.2} strokeLinecap="round" fill="none" />
+        {/* blush */}
+        <Circle cx={32} cy={76} r={4} fill="#ffc0d3" opacity={0.85} />
+        <Circle cx={88} cy={76} r={4} fill="#ffc0d3" opacity={0.85} />
+      </Svg>
+    </Animated.View>
   );
 }

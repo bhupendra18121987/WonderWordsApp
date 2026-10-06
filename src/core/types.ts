@@ -100,7 +100,14 @@ export interface Progress {
   lastPlayedLevel: number;
   activitiesCompleted?: number;
   activityStars?: number;
+  /** Stars earned today (resets each calendar day). */
+  dailyStars?: number;
+  /** ISO date string "YYYY-MM-DD" for when dailyStars was last reset. */
+  dailyDate?: string;
+  /** IDs of stickers the child has collected. */
+  earnedStickers?: string[];
 }
+
 
 export interface FoundWord {
   word: string;

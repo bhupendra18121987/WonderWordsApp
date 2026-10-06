@@ -114,7 +114,7 @@ export default function MissingLetterGame({
   if (!puzzle) {
     return (
       <ThemedScreen title={strings.missingLetterName} language={language} onBack={onExit}>
-        <Text style={styles.prompt}>—</Text>
+        <Text style={styles.prompt}>â€”</Text>
       </ThemedScreen>
     );
   }
@@ -127,7 +127,7 @@ export default function MissingLetterGame({
       headerRight={<Text style={styles.headerRight}>{strings.roundLabel(round, ROUNDS_PER_SESSION)}   {strings.scoreLabel(score)}</Text>}
     >
       <View style={styles.wordCard}>
-        <Text style={styles.emojiHint}>{puzzle.word.emoji ?? '❔'}</Text>
+        <Text style={styles.emojiHint}>{puzzle.word.emoji ?? 'â”'}</Text>
         <View style={styles.wordRow}>
           {displayGraphemes.map((g, i) => (
             <Text
@@ -143,10 +143,10 @@ export default function MissingLetterGame({
           ))}
         </View>
         <Pressable
-          style={styles.speakBtn}
+          style={styles.speakerPill}
           onPress={() => speakWithOptions(puzzle.word.word, { interrupt: true })}
         >
-          <Text style={styles.speakBtnText}>🔊</Text>
+          <Text style={styles.speakerPillText}>🔊 Hear it</Text>
         </Pressable>
       </View>
 
@@ -215,8 +215,8 @@ const styles = StyleSheet.create({
   wordGlyph: { fontSize: 42, fontWeight: '900', color: '#1e1b4b' },
   wordBlank: { color: '#c8c1d8', backgroundColor: '#faf7ff', paddingHorizontal: 6, borderRadius: 8 },
   wordFilled: { color: '#4ec37a' },
-  speakBtn: { paddingHorizontal: 14, paddingVertical: 6 },
-  speakBtnText: { fontSize: 24 },
+  speakerPill: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#4ec37a', paddingHorizontal: 18, paddingVertical: 8, borderRadius: 999 },
+  speakerPillText: { fontSize: 15, fontWeight: '800', color: '#fff' },
 
   prompt: {
     fontSize: 16,

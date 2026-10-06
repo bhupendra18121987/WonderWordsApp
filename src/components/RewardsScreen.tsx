@@ -6,6 +6,7 @@ import { getRewardsData } from '../core/data';
 import { t } from '../core/i18n';
 import { colors, radii, shadow } from '../core/theme';
 import type { Language, Progress } from '../core/types';
+import { STICKERS } from '../core/data/stickers';
 import BackButton from './BackButton';
 
 interface RewardsScreenProps {
@@ -22,6 +23,7 @@ export default function RewardsScreen({ language, progress, onBack }: RewardsScr
   const rewards = getRewardsData(language);
   const [tab, setTab] = useState<Tab>('badges');
   const earned = new Set(progress.badges);
+  const learnedCount = progress.learnedWords.length;
 
   const tabs: { id: Tab; label: string; emoji: string }[] = [
     { id: 'badges',   label: strings.badgesTitle.replace(/^🏅\s*/, ''), emoji: '🏅' },
@@ -91,9 +93,44 @@ export default function RewardsScreen({ language, progress, onBack }: RewardsScr
         )}
 
         {tab === 'stickers' && (
-          <View style={styles.centered}>
-            <Text style={styles.emptyEmoji}>🎨</Text>
-            <Text style={styles.hint}>{strings.stickerComingSoon}</Text>
+          <View style={styles.stickerSection}>
+            {/* Progress headline */}
+            <View style={styles.stickerProgress}>
+              <Text style={styles.stickerProgressText}>
+                🎨 {STICKERS.filter((s) => learnedCount >= s.unlockAt).length} / {STICKERS.length}
+              </Text>
+              <Text style={styles.stickerHint}>
+                {language === 'hi'
+                  ? `${learnedCount} शब्द सीखे`
+                  : `${learnedCount} words learned`}
+              </Text>
+            </View>
+
+            <View style={styles.stickerGrid}>
+              {STICKERS.map((s) => {
+                const unlocked = learnedCount >= s.unlockAt;
+                return (
+                  <View key={s.id} style={[styles.stickerTile, !unlocked && styles.stickerLocked]}>
+                    <Text style={[styles.stickerEmoji, !unlocked && { opacity: 0.25 }]}>
+                      {unlocked ? s.emoji : '🔒'}
+                    </Text>
+                    <Text
+                      style={[styles.stickerName, !unlocked && styles.stickerNameLocked]}
+                      numberOfLines={1}
+                    >
+                      {language === 'hi' ? s.nameHi : s.nameEn}
+                    </Text>
+                    {!unlocked && (
+                      <Text style={styles.stickerUnlockHint}>
+                        {language === 'hi'
+                          ? `${s.unlockAt} शब्द`
+                          : `${s.unlockAt} words`}
+                      </Text>
+                    )}
+                  </View>
+                );
+              })}
+            </View>
           </View>
         )}
       </ScrollView>
@@ -158,12 +195,48 @@ const styles = StyleSheet.create({
   centered: { marginTop: 30, alignItems: 'center', gap: 8 },
   bigStat: { fontSize: 56, fontWeight: '900', color: '#fff' },
   bigStatLabel: { fontSize: 16, fontWeight: '800', color: 'rgba(255,255,255,0.9)' },
-  emptyEmoji: { fontSize: 64 },
   hint: {
     fontSize: 13,
     fontWeight: '600',
     color: 'rgba(255,255,255,0.85)',
     textAlign: 'center',
     maxWidth: 260
-  }
+  },
+
+  // Sticker tab
+  stickerSection: { width: '100%', maxWidth: 460, gap: 12 },
+  stickerProgress: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 16,
+    padding: 14,
+    alignItems: 'center',
+    gap: 4
+  },
+  stickerProgressText: { fontSize: 22, fontWeight: '900', color: '#fff' },
+  stickerHint: { fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.8)' },
+  stickerGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    justifyContent: 'center'
+  },
+  stickerTile: {
+    width: '28%',
+    backgroundColor: colors.paper,
+    borderRadius: 16,
+    padding: 10,
+    alignItems: 'center',
+    gap: 4,
+    borderWidth: 2,
+    borderColor: '#ffe38b',
+    ...shadow.soft
+  },
+  stickerLocked: {
+    borderColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.1)'
+  },
+  stickerEmoji: { fontSize: 30 },
+  stickerName: { fontSize: 10, fontWeight: '800', color: colors.ink, textAlign: 'center' },
+  stickerNameLocked: { color: 'rgba(255,255,255,0.5)' },
+  stickerUnlockHint: { fontSize: 9, fontWeight: '700', color: 'rgba(255,255,255,0.5)', textAlign: 'center' }
 });

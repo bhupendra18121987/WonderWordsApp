@@ -201,7 +201,9 @@ export interface UIStrings {
   toggleMusic: string;
   settings: string;
   hiddenCard: string;
+  dailyGoal: string;
 }
+
 
 const en: UIStrings = {
   wordsToFind: 'Words to find',
@@ -384,8 +386,10 @@ const en: UIStrings = {
   backAgainToExit: 'Press back again to exit',
   toggleMusic: 'Toggle music',
   settings: 'Settings',
-  hiddenCard: 'Hidden card'
+  hiddenCard: 'Hidden card',
+  dailyGoal: 'Daily Goal'
 };
+
 
 const hi: UIStrings = {
   wordsToFind: 'शब्द ढूंढो',
@@ -568,8 +572,10 @@ const hi: UIStrings = {
   backAgainToExit: 'बाहर जाने के लिए फिर से बैक दबाएँ',
   toggleMusic: 'संगीत चालू या बंद करें',
   settings: 'सेटिंग',
-  hiddenCard: 'छुपा हुआ कार्ड'
+  hiddenCard: 'छुपा हुआ कार्ड',
+  dailyGoal: 'दैनिक लक्ष्य'
 };
+
 
 const DICT: Record<Language, UIStrings> = { en, hi };
 

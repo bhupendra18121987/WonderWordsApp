@@ -50,7 +50,8 @@ import { getLanguageConfig } from './src/core/languages';
 import {
   resetScoresOnly,
   restartAtLevelOne,
-  sanitizeProgress
+  sanitizeProgress,
+  updateDailyStars
 } from './src/core/gameLogic';
 import { t } from './src/core/i18n';
 import type {
@@ -92,7 +93,7 @@ export default function App() {
 }
 
 function AppInner() {
-  // ─────────── Persistent state ───────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Persistent state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [rawSettings, setRawSettings, , settingsLoaded] =
     useLocalStorage<Partial<Settings>>(STORAGE_KEYS.settings, DEFAULT_SETTINGS);
   const settings = useMemo<Settings>(
@@ -120,7 +121,7 @@ function AppInner() {
   const [seenOnboarding, setSeenOnboarding] =
     useLocalStorage<boolean>(STORAGE_KEYS.seenOnboarding, false);
   // Remember which mini-game the child last opened so we can highlight
-  // it in the hub — kids form spatial memory quickly and love picking
+  // it in the hub â€” kids form spatial memory quickly and love picking
   // up where they left off.
   const [lastMiniGame, setLastMiniGame] =
     useLocalStorage<MiniGameId | null>('ww:lastMiniGame', null);
@@ -158,7 +159,7 @@ function AppInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [persistenceLoaded]);
 
-  // ─────────── Ephemeral state ───────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Ephemeral state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [screen, setScreenState] = useState<Screen>('splash');
   const navigationHistory = useRef<Screen[]>([]);
   const lastRootBackPress = useRef(0);
@@ -230,7 +231,7 @@ function AppInner() {
     return () => subscription.remove();
   }, [confirmAction, showSettings, showParentGate, showOnboarding, screen, exitPrompt]);
 
-  // ─────────── Derived ───────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Derived â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const langCfg = getLanguageConfig(settings.language);
   const strings = t(settings.language);
   const { speak, cancel: cancelSpeech } = useSpeech({
@@ -264,14 +265,14 @@ function AppInner() {
     [speakText]
   );
 
-  // ─────────── Onboarding trigger ───────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Onboarding trigger â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     if (!seenOnboarding && ageGroup && setupComplete && screen === 'home') {
       setShowOnboarding(true);
     }
   }, [seenOnboarding, ageGroup, setupComplete, screen]);
 
-  // ─────────── Navigation handlers ───────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Navigation handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleSplashStart = () => {
     if (!setupComplete) {
       setPendingLang(settings.language);
@@ -284,7 +285,7 @@ function AppInner() {
   const handleSelectLanguage = (lang: Language) => {
     setPendingLang(lang);
     setSettings((s) => ({ ...s, language: lang }));
-    speak(lang === 'hi' ? 'नमस्ते' : 'Hello', {
+    speak(lang === 'hi' ? 'à¤¨à¤®à¤¸à¥à¤¤à¥‡' : 'Hello', {
       lang: lang === 'hi' ? 'hi-IN' : 'en-US'
     });
   };
@@ -311,16 +312,21 @@ function AppInner() {
     setMascotMessage(strings.letsFind);
   };
 
-  const handleAdventureComplete = (earnedStars: number) => {
-    setProgress((current) => ({
-      ...current,
-      stars: current.stars + earnedStars,
-      activityStars: (current.activityStars ?? 0) + earnedStars,
-      activitiesCompleted: (current.activitiesCompleted ?? 0) + 1
-    }));
+    const handleAdventureComplete = (earnedStars: number) => {
+    setProgress((current) => {
+      const daily = updateDailyStars(current, earnedStars);
+      return {
+        ...current,
+        stars: current.stars + earnedStars,
+        activityStars: (current.activityStars ?? 0) + earnedStars,
+        activitiesCompleted: (current.activitiesCompleted ?? 0) + 1,
+        dailyStars: daily.dailyStars,
+        dailyDate: daily.dailyDate
+      };
+    });
   };
 
-  // ─────────── Reset actions ───────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Reset actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const confirmActionConfig: Record<ConfirmAction, {
     emoji: string;
     title: string;
@@ -330,7 +336,7 @@ function AppInner() {
     run: () => void;
   }> = {
     resetAll: {
-      emoji: '🧹',
+      emoji: 'ðŸ§¹',
       title: strings.resetAllTitle,
       message: strings.resetAllMessage,
       confirmLabel: strings.resetAllConfirm,
@@ -346,7 +352,7 @@ function AppInner() {
       }
     },
     resetScores: {
-      emoji: '⭐',
+      emoji: 'â­',
       title: strings.resetScoresTitle,
       message: strings.resetScoresMessage,
       confirmLabel: strings.resetScoresConfirm,
@@ -357,7 +363,7 @@ function AppInner() {
       }
     },
     restartLevel: {
-      emoji: '🔄',
+      emoji: 'ðŸ”„',
       title: strings.restartLevelTitle,
       message: strings.restartLevelMessage,
       confirmLabel: strings.restartLevelConfirm,
@@ -366,7 +372,7 @@ function AppInner() {
     }
   };
 
-  // ─────────── Chrome visibility ───────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Chrome visibility â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Fully-immersive screens hide both the app TopBar AND the BottomNav.
   // Themed screens hide only the TopBar (they render their own purple
   // header) but keep the BottomNav for tab-switching.
@@ -406,7 +412,7 @@ function AppInner() {
     screen === 'profile' ? 'profile' :
     null;
 
-  // ─────────── Render ───────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   return (
     <View style={styles.root}>
       <StatusBar style="dark" />

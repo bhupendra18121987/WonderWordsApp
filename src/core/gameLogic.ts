@@ -1,5 +1,6 @@
 // Pure game-logic helpers — reused by web and mobile UIs.
 import { getRewardsData, rewardsData } from './data';
+import { computeEarnedStickers } from './data/stickers';
 import type { Language, LearnedWord, Progress, WordEntry } from './types';
 
 export function pickRandom<T>(arr: readonly T[]): T {
@@ -72,6 +73,25 @@ export function computeBadges(
   return Array.from(set);
 }
 
+/** Standard YYYY-MM-DD local date string for daily goal tracking. */
+export function todayDateString(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/** Helper to update daily stars based on today's calendar date. */
+export function updateDailyStars(current: Progress, addedStars: number): { dailyStars: number; dailyDate: string } {
+  const today = todayDateString();
+  const currentDaily = current.dailyDate === today ? (current.dailyStars ?? 0) : 0;
+  return {
+    dailyStars: currentDaily + addedStars,
+    dailyDate: today
+  };
+}
+
 /**
  * Given the current progress and the outcome of a finished puzzle, return the
  * next progress state. Pure — no side effects.
@@ -93,6 +113,7 @@ export function progressAfterPuzzle(params: {
     totalPuzzles: puzzlesCompleted,
     currentStreak
   });
+  const daily = updateDailyStars(current, stars);
   return {
     level: Math.max(current.level, level + 1),
     stars: nextStars,
@@ -101,7 +122,10 @@ export function progressAfterPuzzle(params: {
     badges,
     lastPlayedLevel: level,
     activitiesCompleted: current.activitiesCompleted ?? 0,
-    activityStars: current.activityStars ?? 0
+    activityStars: current.activityStars ?? 0,
+    dailyStars: daily.dailyStars,
+    dailyDate: daily.dailyDate,
+    earnedStickers: computeEarnedStickers(learnedWords.length)
   };
 }
 
@@ -118,7 +142,9 @@ export function resetScoresOnly(current: Progress): Progress {
     puzzlesCompleted: 0,
     level: 1,
     lastPlayedLevel: 0,
-    activityStars: 0
+    activityStars: 0,
+    dailyStars: 0,
+    dailyDate: todayDateString()
   };
 }
 
@@ -145,12 +171,14 @@ export function sanitizeProgress(p: Progress): Progress {
   const maxStars = Math.max(puzzlesCompleted, 1) * 3 + Math.max(0, p.activitiesCompleted ?? 0) * 3;
   const stars = Math.min(p.stars, maxStars);
   const level = Math.max(1, Math.min(p.level, puzzlesCompleted + 1));
+  const earnedStickers = p.earnedStickers ?? computeEarnedStickers(p.learnedWords.length);
   if (
     stars === p.stars &&
     puzzlesCompleted === p.puzzlesCompleted &&
-    level === p.level
+    level === p.level &&
+    earnedStickers === p.earnedStickers
   ) {
     return p;
   }
-  return { ...p, stars, puzzlesCompleted, level };
+  return { ...p, stars, puzzlesCompleted, level, earnedStickers };
 }
